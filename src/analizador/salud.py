@@ -23,6 +23,11 @@ class Indicador:
     explicacion: str
 
 
+def _es(texto: str) -> str:
+    """Formato español: coma decimal."""
+    return texto.replace(".", ",")
+
+
 def _semaforo(valor, bien, mal, mayor_es_mejor=True) -> str:
     if valor is None or not np.isfinite(valor):
         return "info"
@@ -37,26 +42,26 @@ def indicadores(fund: pd.Series, trimestral: pd.DataFrame, crecimiento: pd.DataF
     salida = []
     per = fund.get("PER")
     salida.append(Indicador(
-        "PER (precio / beneficio)", "—" if pd.isna(per) else f"{per:.1f} veces", "info",
+        "PER (precio / beneficio)", "—" if pd.isna(per) else _es(f"{per:.1f} veces"), "info",
         "Cuántos años de beneficio actual paga el mercado por la empresa. La media histórica del S&P 500 ronda "
         "16; muy alto = se esperan grandes crecimientos, muy bajo = el mercado desconfía o está barata."))
 
     margen = fund.get("Margen de beneficio")
     salida.append(Indicador(
-        "Margen de beneficio", "—" if pd.isna(margen) else f"{margen:.1%}", _semaforo(margen, 0.15, 0.05),
+        "Margen de beneficio", "—" if pd.isna(margen) else _es(f"{margen:.1%}"), _semaforo(margen, 0.15, 0.05),
         "De cada 100 € que vende, cuántos le quedan de beneficio. Más del 15 % es muy rentable; menos del 5 %, poco."))
 
     deuda = fund.get("Deuda/Patrimonio")
     estado_deuda = "info" if sector in SECTORES_DEUDA_NORMAL else _semaforo(deuda, 0.5, 1.5, mayor_es_mejor=False)
     salida.append(Indicador(
-        "Deuda / patrimonio", "—" if pd.isna(deuda) else f"{deuda:.2f} veces", estado_deuda,
+        "Deuda / patrimonio", "—" if pd.isna(deuda) else _es(f"{deuda:.2f} veces"), estado_deuda,
         "Cuánta deuda tiene por cada euro de fondos propios. Menos de 0,5 es poca; más de 1,5, mucha."
         + (" En bancos, aseguradoras e inmobiliarias la deuda alta es normal en su negocio."
            if sector in SECTORES_DEUDA_NORMAL else "")))
 
     fcf = fund.get("Rentabilidad FCF")
     salida.append(Indicador(
-        "Rentabilidad del flujo de caja", "—" if pd.isna(fcf) else f"{fcf:.1%}", _semaforo(fcf, 0.05, 0.0),
+        "Rentabilidad del flujo de caja", "—" if pd.isna(fcf) else _es(f"{fcf:.1%}"), _semaforo(fcf, 0.05, 0.0),
         "Dinero que genera de verdad cada año (después de invertir) en relación con lo que vale en bolsa. "
         "Por encima del 5 % es mucho; negativo significa que quema caja."))
 
@@ -65,7 +70,7 @@ def indicadores(fund: pd.Series, trimestral: pd.DataFrame, crecimiento: pd.DataF
         serie = crecimiento["Crec. ingresos (interanual)"].dropna()
         crec = float(serie.iloc[-1]) if len(serie) else np.nan
     salida.append(Indicador(
-        "Crecimiento de las ventas", "—" if pd.isna(crec) else f"{crec:+.1%}", _semaforo(crec, 0.10, 0.0),
+        "Crecimiento de las ventas", "—" if pd.isna(crec) else _es(f"{crec:+.1%}"), _semaforo(crec, 0.10, 0.0),
         "Ventas del último trimestre frente al mismo trimestre del año anterior. Más del 10 % es crecer mucho."))
 
     beneficio = np.nan

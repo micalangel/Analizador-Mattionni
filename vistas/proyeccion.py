@@ -387,7 +387,7 @@ if tipo_de(ticker) in {"Acción", "Otro"} and "Volume" in datos and (datos["Volu
                 sector_emp = sector_de(ticker)
                 ref_sector = medianas.get(sector_emp)
                 try:
-                    per_valor = float(per_emp.valor.split()[0]) if per_emp and per_emp.valor != "—" else None
+                    per_valor = float(per_emp.valor.split()[0].replace(",", ".")) if per_emp and per_emp.valor != "—" else None
                 except ValueError:
                     per_valor = None
                 if per_valor and (ref_sector or mediana_total):

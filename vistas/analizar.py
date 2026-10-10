@@ -358,13 +358,29 @@ with pestanas[7]:
     ])
     if not estudio.empty:
         hechas = estudio.dropna(subset=["BPA publicado"]).sort_index(ascending=False).head(12)
-        st.dataframe(pd.DataFrame({
+        tabla_res = pd.DataFrame({
             "Fecha": [f"{pd.Timestamp(i):%d/%m/%Y}" for i in hechas.index],
             "BPA esperado": hechas["BPA estimado"].map(cifra),
             "BPA real": hechas["BPA publicado"].map(cifra),
             "Sorpresa": hechas["Sorpresa %"].map(lambda v: cifra(v, "{:+.1f} %")),
             "Reacción del precio": hechas["reaccion"].map(lambda v: cifra(v, "{:+.1%}")),
-        }), hide_index=True, width="stretch")
+        }).reset_index(drop=True)
+        sorpresas = hechas["Sorpresa %"].to_numpy()
+        reacciones = hechas["reaccion"].to_numpy()
+
+        def colorear(fila):
+            """Fila verde clara si superó lo esperado y roja clara si no; la reacción, según si subió o bajó."""
+            sorpresa, reaccion = sorpresas[fila.name], reacciones[fila.name]
+            fondo = "#ECFDF5" if sorpresa > 0 else "#FEF2F2" if sorpresa < 0 else "#F9FAFB"
+            estilos = [f"background-color: {fondo}"] * len(fila)
+            if pd.notna(reaccion):
+                color = "#047857" if reaccion > 0 else "#B91C1C"
+                estilos[-1] += f"; color: {color}; font-weight: 600"
+            return estilos
+
+        st.dataframe(tabla_res.style.apply(colorear, axis=1), hide_index=True, width="stretch")
+        st.caption("Verde: el beneficio superó lo que esperaban los analistas; rojo: se quedó por debajo. La reacción del "
+                   "precio va en verde si subió y en rojo si bajó: a veces la bolsa reacciona al revés de lo esperado.")
     if noticias is not None and not noticias.empty:
         st.markdown("<div class='titulo-bloque' style='margin-top:1rem'>Noticias recientes</div>", unsafe_allow_html=True)
         st.dataframe(pd.DataFrame({
