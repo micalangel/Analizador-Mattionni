@@ -2,7 +2,8 @@
 # Actualización automática de Mattionni Analytics (la programa launchd cada noche en el Mac).
 #
 #  * Cada noche: estudio de todas las empresas con los precios del día (probabilidades, rangos,
-#    salud y volumen) y apunta las predicciones nuevas en el diario de la IA.
+#    salud y volumen), apunta las predicciones nuevas en el diario de la IA y rehace el
+#    laboratorio de estrategias de cartera.
 #  * Los domingos: además, reentrena la IA con todos los datos hasta hoy.
 #  * Sube a GitHub solo los modelos y estudios; la web se actualiza sola al recibirlos.
 #
@@ -20,7 +21,7 @@ export PYTHONPATH="$RAIZ/src" PYTHONWARNINGS=ignore
 echo "===== $(date '+%Y-%m-%d %H:%M') · Mattionni Analytics ====="
 
 if [[ "${1:-}" == "--prueba" ]]; then
-  "$PY" --version && git status --short | head -5 && git ls-remote --heads origin main | head -1
+  "$PY" --version && git status --short | head -5 && git push --dry-run origin main
   echo "Prueba correcta."
   exit 0
 fi
@@ -36,8 +37,11 @@ fi
 echo "-- Estudio de empresas…"
 "$PY" -m analizador.estudio || { echo "ERROR en el estudio"; exit 1; }
 
+echo "-- Laboratorio de estrategias…"
+"$PY" -m analizador.estrategias || echo "ERROR en el laboratorio de estrategias"
+
 # Solo los resultados: nunca el código a medio hacer de quien esté trabajando en el Mac.
-git add modelos/global/*.joblib modelos/global/estudio_*.csv modelos/registro/ 2>/dev/null
+git add modelos/global/*.joblib modelos/global/estudio_*.csv modelos/global/estrategias/ modelos/registro/ 2>/dev/null
 if git diff --cached --quiet; then
   echo "Sin cambios que subir."
 else

@@ -57,6 +57,7 @@ secciones = [
     ("/empresas", "c2", "Todas las empresas", "Más de 360, con filtros por país, sector y salud."),
     ("/indices", "c3", "Bolsas del mundo", "Los índices de 30 países comparados."),
     ("/simulador", "c3", "Simulador de estrategias", "Dónde habría comprado y vendido una regla, con su resultado."),
+    ("/estrategias", "c1", "Estrategias que aprende", "Decenas de estrategias de cartera y un aprendiz que elige cada año."),
     ("/la_ia", "c1", "¿Acierta la IA?", "Su diario: predicciones apuntadas hoy y comprobadas cuando vencen."),
     ("/laboratorio", "c2", "Experimentos", "Qué reglas famosas funcionan y cuáles son un mito."),
     ("/analisis", "c3", "Avanzado", "Gráficos técnicos, resultados de empresas, noticias y simulaciones."),

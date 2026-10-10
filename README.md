@@ -51,6 +51,10 @@ si esos rangos aciertan tanto como dicen.
   volumen inusual, pánico, resultados cercanos, movimientos muy grandes), consulta cuándo presentan resultados y
   cuánto suelen moverse ese día, y compara de 2 a 4 activos lado a lado. `python -m analizador.alertas --notificar`
   muestra las alertas como aviso del sistema en macOS.
+- **Estrategias que aprende:** prueba unas 34 estrategias de cartera (momentum, momentum con filtro de mercado,
+  baja volatilidad, tendencia, reversión, combinada) sobre bolsas, empresas, materias primas/divisas/cripto o todo
+  junto. Un «aprendiz» elige cada año la mejor hasta ese día y se mide en los años siguientes; incluye comparación
+  con el azar y pruebas de resistencia (comisiones dobles, un mes de retraso, por tramos). `python -m analizador.estrategias`.
 - **Simulador de estrategias (educativo):** reglas clásicas (cruce de medias, tendencia, ruptura de máximos, RSI,
   comprar caídas) con sus puntos de compra ▲ y venta ▼, operaciones, costes, comparación con comprar y mantener y
   con el azar, en velas diarias, de 1 hora o de 5 minutos. Todo simulado: no envía órdenes a ningún bróker.
@@ -291,6 +295,7 @@ src/analizador/
     alertas.py              Alertas diarias de «Mi lista»
     calendario.py           Próximas presentaciones de resultados y reacción típica
     simulador.py            Simulador educativo de estrategias de compra y venta
+    estrategias.py          Laboratorio de estrategias de cartera y aprendiz año a año
     ficha.py                Datos completos de una empresa (valoración, balance, dividendos, analistas)
     per_historico.py        PER de cada día y su media histórica
     tecnico.py              Análisis técnico objetivo: lecturas, soportes y resistencias

@@ -31,6 +31,8 @@ paginas = st.navigation([
     st.Page("vistas/la_ia.py", title="¿Acierta la IA?", icon=":material/psychology:", url_path="la_ia"),
     st.Page("vistas/simulador.py", title="Simulador de estrategias", icon=":material/candlestick_chart:",
             url_path="simulador"),
+    st.Page("vistas/estrategias.py", title="Estrategias que aprende", icon=":material/auto_graph:",
+            url_path="estrategias"),
     st.Page("vistas/laboratorio.py", title="Experimentos", icon=":material/science:", url_path="laboratorio"),
     st.Page("vistas/analisis.py", title="Avanzado", icon=":material/tune:", url_path="analisis"),
 ])

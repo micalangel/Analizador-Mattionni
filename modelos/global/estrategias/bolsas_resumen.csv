@@ -1,0 +1,27 @@
+,valor
+universo,bolsas
+activos,37
+variantes,34
+desde,1991-02-28
+hasta,2026-10-31
+desde_aprendiz,2000-01-31
+elegida_hoy,Momentum con filtro de mercado · 7 activos
+liquidez_hoy,2.220446049250313e-16
+aprendiz_rent_anual,0.08367491770218494
+aprendiz_volatilidad,0.08994477068619684
+aprendiz_sharpe,0.9405902845999253
+aprendiz_max_caida,-0.17479790964091824
+aprendiz_meses_positivos,0.639751552795031
+aprendiz_anios,26.833333333333332
+ambicioso_rent_anual,0.13169084058517488
+ambicioso_volatilidad,0.16046284281937614
+ambicioso_sharpe,0.8537300065690266
+ambicioso_max_caida,-0.3467222345335027
+ambicioso_meses_positivos,0.6521739130434783
+ambicioso_anios,26.833333333333332
+referencia_rent_anual,0.0721558373804223
+referencia_volatilidad,0.14082410499055475
+referencia_sharpe,0.5677807345617315
+referencia_max_caida,-0.5231211377622718
+referencia_meses_positivos,0.6273291925465838
+referencia_anios,26.833333333333332

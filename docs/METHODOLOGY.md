@@ -258,6 +258,27 @@ objetivo al año o lo tocó durante el año, error absoluto medio y diferencia m
 anunciado y lo ocurrido. Las muestras mensuales se solapan y no son independientes. En empresas
 que han subido muchísimo los analistas parecen «prudentes» por un efecto de selección.
 
+## 15 ter. Laboratorio de estrategias de cartera y aprendiz
+
+- Datos mensuales (cierre del último día con cotización de cada mes). Limpieza: se quitan los picos de un día que
+  se deshacen al siguiente (>50 % y vuelta >33 %), y si un mes sube >300 % o cae >90 % se considera la serie rota y
+  se descarta su historia anterior.
+- Variantes (≈34): momentum 3/6/12 meses saltando el último mes, con y sin «freno» (solo si su rentabilidad es
+  positiva), baja volatilidad (126 sesiones), reversión de 1 mes, tendencia (precio sobre su media de 6/10/12
+  meses, reparto igual entre los que cumplen), combinada (rango de momentum 12 meses + rango de calma) y
+  momentum con filtro de mercado (solo si el índice igualitario del universo está sobre su media de 10 meses).
+  N = 10/20/30 % del universo. Igual peso; lo no invertido cobra el tipo a 3 meses de EE. UU. (`^IRX`) del mes anterior.
+- Ejecución: pesos decididos con el cierre de fin de mes t, aplicados a la rentabilidad del mes t+1; coste de
+  0,2 % por unidad de rotación.
+- Aprendiz: cada 1 de enero desde 2000 elige la variante con mejor Sharpe (prudente) o mayor crecimiento medio
+  logarítmico (ambicioso) usando solo meses anteriores (mínimo 60) y la mantiene ese año.
+- Azar: 300 carteras con N activos aleatorios cada mes y rotación alta; «mejor que el azar» = % de ellas superadas.
+- Resistencia: comisiones dobles, pesos aplicados un mes más tarde y tramos 2000–2012 / 2013–hoy.
+- Resultado (octubre de 2026): en los 37 índices, el momentum con filtro de mercado (7 índices) dio un 12,2 % anual
+  desde 2000 frente al 7,2 % de comprar todo, con peor caída del −18 % frente al −52 %, y siguió por delante con
+  comisiones dobles (11,1 %), un mes de retraso (10,9 %) y en ambos tramos. Sesgos a favor: familias inspiradas en
+  estudios posteriores a 2000 y muchos índices sin dividendos (la liquidez sí cobra intereses).
+
 ## 16. Limitaciones metodológicas
 
 - La normalidad subestima las colas; con niveles de confianza altos (95 %) la cobertura suele quedar
