@@ -7,10 +7,9 @@ from datetime import date
 import pandas as pd
 import streamlit as st
 
-from analizador import mi_lista as ml
 from analizador.calendario import proximas_publicaciones, tabla_calendario
 from analizador.catalogo import ACTIVOS, descripcion, nombre, opciones_ordenadas
-from vistas.comun import cargar, nota, seccion
+from vistas.comun import cargar, lista_cargar, nota, seccion
 
 POR_DEFECTO = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "SAN.MC", "BBVA.MC", "ITX.MC", "IBE.MC"]
 
@@ -27,7 +26,7 @@ st.markdown("<div class='subtitulo'>Cuándo presentan sus cuentas las empresas y
             "día. Los días de resultados son de los que más se mueve una acción.</div>", unsafe_allow_html=True)
 st.write("")
 
-mi = [t for t in ml.cargar() if ACTIVOS.get(t, ("", "Acción"))[1] == "Acción"]
+mi = [t for t in lista_cargar() if ACTIVOS.get(t, ("", "Acción"))[1] == "Acción"]
 with seccion("elegir", "suave"):
     st.markdown("<div class='titulo-bloque'>Empresas</div>", unsafe_allow_html=True)
     acciones = [t for t in opciones_ordenadas() if ACTIVOS[t][1] == "Acción"]

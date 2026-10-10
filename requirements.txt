@@ -1,7 +1,12 @@
-pandas>=2.1
-numpy>=1.26
-yfinance>=0.2.40
-plotly>=5.18
-streamlit>=1.50
-scikit-learn>=1.4
+# Versiones exactas: los modelos de la IA (modelos/global/*.joblib) se guardaron con estas.
+# Si se cambia scikit-learn hay que reentrenar: python -m analizador.entrenamiento
+pandas==3.0.6
+numpy==2.4.6
+scikit-learn==1.9.1
+scipy==1.17.1
+joblib==1.6.0
+streamlit==1.65.0
+plotly==7.1.0
+# yfinance se actualiza a menudo para seguir los cambios de Yahoo Finance.
+yfinance>=1.7.0
 pytest>=8

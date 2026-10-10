@@ -7,11 +7,10 @@ from datetime import date
 import pandas as pd
 import streamlit as st
 
-from analizador import mi_lista as ml
 from analizador.alertas import evaluar
 from analizador.calendario import proximas_publicaciones
 from analizador.catalogo import descripcion, nombre, opciones_ordenadas
-from vistas.comun import cargar, cargar_estudios, cargar_macro, nota, numero, seccion
+from vistas.comun import cargar, cargar_estudios, cargar_macro, lista_cargar, lista_guardar, nota, numero, seccion
 
 SALUD = {"bien": "🟢 Sólida", "regular": "🟡 Mixta", "mal": "🔴 Débil", "info": "⚪ Sin datos"}
 
@@ -33,14 +32,19 @@ st.markdown("<div class='subtitulo'>Los activos que sigues: qué conviene saber 
             unsafe_allow_html=True)
 st.write("")
 
-lista = ml.cargar()
+lista = lista_cargar()
+from analizador.mi_lista import en_la_nube  # noqa: E402
+
+if en_la_nube():
+    st.caption("En la versión online, tu lista se guarda solo mientras tengas la página abierta. Para guardarla de "
+               "forma permanente, usa la app en tu ordenador.")
 with seccion("editar", "suave"):
     st.markdown("<div class='titulo-bloque'>Activos que sigues</div>", unsafe_allow_html=True)
     nueva = st.multiselect("Activos que sigues", opciones_ordenadas(), default=[t for t in lista],
                            format_func=descripcion, label_visibility="collapsed",
                            placeholder="Busca y añade empresas, índices, divisas…")
     if nueva != lista:
-        ml.guardar(nueva)
+        lista_guardar(nueva)
         lista = nueva
         st.rerun()
 

@@ -10,7 +10,6 @@ import streamlit as st
 
 from analizador import direccion as dr
 from analizador import entrenamiento as ent
-from analizador import mi_lista as ml
 from analizador import noticias as nt
 from analizador import salud as sl
 from analizador import situaciones as sit
@@ -22,7 +21,8 @@ from analizador.catalogo import ACTIVOS, buscar, buscar_en_yahoo, descripcion, n
 from analizador.forecast import HORIZONTES
 from analizador.indices import INDICES, MERCADO
 from analizador.proyeccion import DESCRIPCIONES, ESTADOS, NOMBRES_CORTOS, proyectar
-from vistas.comun import COLORES, cargar, cargar_macro, estilo, nota, numero, per_referencia, seccion, tarjeta
+from vistas.comun import (COLORES, cargar, cargar_macro, estilo, lista_cargar, lista_guardar, nota, numero,
+                          per_referencia, seccion, tarjeta)
 
 REFERENCIA_NUEVOS = "^IXIC"  # para activos sin historia propia suficiente
 
@@ -245,12 +245,13 @@ obj = int(round(confianza * 100))
 
 # --- Resultado ---------------------------------------------------------------------------------
 
-en_lista = ticker in ml.cargar()
+en_lista = ticker in lista_cargar()
 c_nombre, c_estrella = st.columns([4, 1])
 with c_estrella:
     if st.button("★ En mi lista" if en_lista else "☆ Añadir a mi lista", key="estrella", width="stretch",
                  help="Quitar de «Mi lista»" if en_lista else "Seguir este activo en «Mi lista»"):
-        (ml.quitar if en_lista else ml.anadir)(ticker)
+        actual = lista_cargar()
+        lista_guardar([t for t in actual if t != ticker] if en_lista else actual + [ticker])
         st.rerun()
 
 with tarjeta("resultado", "azul"):

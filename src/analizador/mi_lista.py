@@ -12,6 +12,11 @@ from pathlib import Path
 RUTA = Path(__file__).resolve().parents[2] / "modelos" / "mi_lista.json"
 
 
+def en_la_nube() -> bool:
+    """True si la app corre en Streamlit Community Cloud (allí el código vive en /mount/src)."""
+    return str(Path(__file__).resolve()).startswith("/mount/src")
+
+
 def cargar(ruta: Path | str = RUTA) -> list[str]:
     ruta = Path(ruta)
     if not ruta.exists():

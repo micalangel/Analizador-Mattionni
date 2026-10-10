@@ -8,11 +8,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from analizador import mi_lista as ml
 from analizador.catalogo import descripcion, nombre, opciones_ordenadas
 from analizador.catalogo import sector as sector_de
 from analizador.salud import comparar_per
-from vistas.comun import COLORES, cargar, cargar_estudios, estilo, nota, numero, per_referencia, seccion
+from vistas.comun import COLORES, cargar, cargar_estudios, estilo, lista_cargar, nota, numero, per_referencia, seccion
 
 SALUD = {"bien": ("Sólida", "#047857"), "regular": ("Mixta", "#B45309"), "mal": ("Débil", "#B91C1C")}
 PERIODOS = {"6 meses": pd.DateOffset(months=6), "1 año": pd.DateOffset(years=1), "5 años": pd.DateOffset(years=5),
@@ -28,7 +27,7 @@ st.markdown("<div class='subtitulo'>Elige de 2 a 4 empresas, índices o activos 
             "probabilidad, riesgo, salud de sus cuentas y cómo se han movido.</div>", unsafe_allow_html=True)
 st.write("")
 
-lista = ml.cargar()
+lista = lista_cargar()
 inicial = (lista[:3] if len(lista) >= 2 else ["AAPL", "MSFT", "ITX.MC"])
 with seccion("elegir", "suave"):
     c1, c2 = st.columns([2, 1], gap="large")

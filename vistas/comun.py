@@ -241,3 +241,21 @@ def per_referencia() -> tuple[dict, float | None]:
     if not ruta.exists():
         return {}, None
     return per_de_referencia(pd.read_csv(ruta), {t: v[3] for t, v in ACTIVOS.items()})
+
+
+def lista_cargar() -> list[str]:
+    """«Mi lista»: en el ordenador propio se guarda en un archivo; en la nube, solo en la sesión del visitante."""
+    from analizador import mi_lista as ml
+
+    if ml.en_la_nube():
+        return list(st.session_state.get("mi_lista", []))
+    return ml.cargar()
+
+
+def lista_guardar(tickers: list[str]) -> None:
+    from analizador import mi_lista as ml
+
+    if ml.en_la_nube():
+        st.session_state["mi_lista"] = list(dict.fromkeys(tickers))
+    else:
+        ml.guardar(tickers)
