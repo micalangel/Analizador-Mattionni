@@ -70,3 +70,24 @@ def test_estudio_completo_sintetico():
     assert {"Aprendiz", "Aprendiz ambicioso", "Comprar todo (igual peso)"} <= set(e.curvas.columns)
     assert len(e.tabla) == len(es.generar_variantes(12))
     assert e.actual["peso"].sum() <= 1 + 1e-9
+
+
+def test_familias_con_datos_adicionales():
+    datos = _datos()
+    u = es.preparar(datos)
+    rng = np.random.default_rng(3)
+    extra = {k: pd.DataFrame(rng.normal(size=u.precios.shape), index=u.precios.index, columns=u.precios.columns)
+             for k in ("revisiones", "sorpresa")}
+    familias = {v.familia for v in es.generar_variantes(12, tuple(extra))}
+    assert {"revisiones", "sorpresa", "momentum_revisiones", "triple"} <= familias
+    assert "potencial" not in familias
+    e = es.estudiar(datos, "prueba", extra=extra, simulaciones=10, primer_anio=2004, minimo=24)
+    assert e.tabla["familia"].isin(["triple"]).any()
+    # La cartera de la familia «revisiones» en el mes t solo depende de las puntuaciones hasta t.
+    u.extra = extra
+    v = es.Variante("revisiones", (("n", 3),))
+    w1 = es.pesos(v, u)
+    alterado = {k: t.copy() for k, t in extra.items()}
+    alterado["revisiones"].iloc[80:] = 0
+    u.extra = alterado
+    pd.testing.assert_frame_equal(w1.iloc[:80], es.pesos(v, u).iloc[:80])

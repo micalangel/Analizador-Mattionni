@@ -4,7 +4,7 @@
 #  * Cada noche: estudio de todas las empresas con los precios del día (probabilidades, rangos,
 #    salud y volumen), apunta las predicciones nuevas en el diario de la IA y rehace el
 #    laboratorio de estrategias de cartera.
-#  * Los domingos: además, reentrena la IA con todos los datos hasta hoy.
+#  * Los domingos: además, reentrena la IA y descarga el historial de analistas y resultados.
 #  * Sube a GitHub solo los modelos y estudios; la web se actualiza sola al recibirlos.
 #
 # Uso manual:  scripts/actualizar_noche.sh            (lo mismo que de noche)
@@ -32,6 +32,11 @@ git pull --rebase --autostash -q origin main || echo "Aviso: no se pudo traer lo
 if [[ "$(date +%u)" == "7" || "${1:-}" == "--entrenar" ]]; then
   echo "-- Reentrenando la IA…"
   "$PY" -m analizador.entrenamiento || { echo "ERROR en el entrenamiento"; exit 1; }
+fi
+
+if [[ "$(date +%u)" == "7" || ! -d "$RAIZ/data_cache/empresas" ]]; then
+  echo "-- Historial de analistas y resultados de las empresas…"
+  "$PY" -m analizador.datos_empresas || echo "ERROR descargando analistas y resultados"
 fi
 
 echo "-- Estudio de empresas…"

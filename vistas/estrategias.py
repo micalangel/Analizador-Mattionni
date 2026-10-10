@@ -15,7 +15,7 @@ from vistas.comun import COLORES, estilo, nota, seccion, tarjeta
 VERDE, ROJO = "#0E9F6E", "#DC2626"
 REFERENCIA = "Comprar todo (igual peso)"
 CORTOS = {"bolsas": "Bolsas del mundo", "empresas": "Empresas", "otros": "Materias primas, divisas y cripto",
-          "todo": "Todo junto"}
+          "todo": "Todo junto", "analistas": "EE. UU. con analistas"}
 
 
 @st.cache_data(ttl=60 * 10, show_spinner=False)
@@ -54,7 +54,24 @@ desde = pd.Timestamp(r["desde_aprendiz"])
 curvas = e.curvas.loc[desde:]
 anios = r.get("aprendiz_anios", len(curvas) / 12)
 
-if universo == "empresas":
+CONCLUSIONES = {
+    "bolsas": "En las bolsas del mundo destaca el <b>momentum con filtro de mercado</b>: invertir en los índices que "
+              "más han subido en el último año, pero solo cuando el conjunto del mercado está en tendencia alcista. "
+              "Ha ganado más que comprar todo con caídas mucho menores y aguanta las pruebas de resistencia.",
+    "empresas": "Con empresas gana el <b>momentum</b> (lo que más ha subido en 6–12 meses), sobre todo con filtro de "
+                "mercado. Las cifras están infladas porque la lista solo tiene empresas que sobrevivieron.",
+    "otros": "En materias primas, divisas y cripto <b>ninguna estrategia gana de forma clara a repartir entre todos</b>: "
+             "el aprendiz se equivoca a menudo porque lo que funciona cambia mucho de una década a otra.",
+    "todo": "Mezclar bolsas, materias primas, divisas y cripto ayuda: el <b>momentum con filtro de mercado</b> elige "
+            "entre más tipos de activos y reduce las caídas frente a comprar todo.",
+    "analistas": "Novedad: aquí se combinan precios con el historial de <b>analistas</b> y <b>resultados</b>. Conclusión "
+                 "honesta: las revisiones de los analistas no ganan a comprar todo, la sorpresa en resultados apenas "
+                 "aporta, y comprar donde los analistas ven más potencial ha sido <b>lo peor</b>. Lo que mejor "
+                 "funciona sigue siendo el momentum (inflado por el sesgo de supervivencia).",
+}
+nota(f"<b>Qué ha descubierto el laboratorio:</b> {CONCLUSIONES.get(universo, '')}", "verde")
+
+if universo in ("empresas", "analistas"):
     nota("<b>Ojo con las empresas:</b> la lista es la de hoy, así que solo incluye las que sobrevivieron y "
          "crecieron. Eso infla todas las cifras (también la de comprar todo). Lo útil es comparar las estrategias "
          "entre sí, no las cifras absolutas.", "ambar")
@@ -129,7 +146,7 @@ t = e.tabla
 tabla = pd.DataFrame({
     "Estrategia": t["variante"],
     "Rentab. anual": t["rent_anual"] * 100,
-    "Desde 2000": t["rent_anual_desde_aprendiz"] * 100,
+    f"Desde {desde.year}": t["rent_anual_desde_aprendiz"] * 100,
     "Volatilidad": t["volatilidad"] * 100,
     "Peor caída": t["max_caida"] * 100,
     "Sharpe": t["sharpe"],
@@ -138,7 +155,7 @@ tabla = pd.DataFrame({
 })
 st.dataframe(tabla, hide_index=True, width="stretch", height=420, column_config={
     "Rentab. anual": st.column_config.NumberColumn(format="%+.1f %%", help=f"Desde {r['desde']} (toda la historia)."),
-    "Desde 2000": st.column_config.NumberColumn(format="%+.1f %%", help="En el mismo periodo que el aprendiz."),
+    f"Desde {desde.year}": st.column_config.NumberColumn(format="%+.1f %%", help="En el mismo periodo que el aprendiz."),
     "Volatilidad": st.column_config.NumberColumn(format="%.0f %%"),
     "Peor caída": st.column_config.NumberColumn(format="%.0f %%"),
     "Sharpe": st.column_config.NumberColumn(format="%.2f", help="Rentabilidad por unidad de riesgo: más alto es mejor."),
@@ -154,6 +171,7 @@ with st.expander("Qué hace cada familia de estrategias"):
 # --- Pruebas de resistencia -------------------------------------------------------------------
 
 rob = t.dropna(subset=["rob_normal"])
+corte = pd.Timestamp(r.get("corte_mitades", "2012-12-31"))
 if not rob.empty:
     with seccion("resistencia", "suave"):
         st.markdown("<div class='titulo-bloque'>Pruebas de resistencia de las mejores</div>", unsafe_allow_html=True)
@@ -163,8 +181,8 @@ if not rob.empty:
             "Normal": rob["rob_normal"] * 100,
             "Comisiones dobles": rob["rob_comision_doble"] * 100,
             "Operando un mes tarde": rob["rob_un_mes_tarde"] * 100,
-            "2000–2012": rob["rob_2000–2012"] * 100,
-            "2013–hoy": rob["rob_2013–hoy"] * 100,
+            f"{desde.year}–{corte.year}": rob["rob_primera_mitad"] * 100,
+            f"{corte.year + 1}–hoy": rob["rob_segunda_mitad"] * 100,
         })
         formato = {c: "{:+.1f} %" for c in tabla_rob.columns if c != "Estrategia"}
         ref = tabla_rob[tabla_rob["Estrategia"] == REFERENCIA].iloc[0]
@@ -174,7 +192,7 @@ if not rob.empty:
                     else "" for c in fila.index]
 
         st.dataframe(tabla_rob.style.apply(color_rob, axis=1).format(formato), hide_index=True, width="stretch")
-        st.caption("Rentabilidad anual desde 2000. Verde: supera a comprar todo en esa misma prueba.")
+        st.caption(f"Rentabilidad anual desde {desde.year}. Verde: supera a comprar todo en esa misma prueba.")
 
 # --- Cartera de hoy ------------------------------------------------------------------------------
 
@@ -182,7 +200,7 @@ st.markdown("<div class='titulo-bloque' style='margin-top:1rem'>Qué tendría ho
             unsafe_allow_html=True)
 with tarjeta("hoy", "azul"):
     st.markdown(f"Con todos los datos hasta hoy, el aprendiz prudente usaría <b>{r['elegida_hoy']}</b>. Su cartera "
-                f"simulada a fin de este mes:", unsafe_allow_html=True)
+                f"simulada con los últimos precios (se fija con el cierre de fin de mes):", unsafe_allow_html=True)
     actual = e.actual.copy()
     if actual.empty:
         st.write("Ahora mismo estaría **todo en liquidez**: la estrategia no ve ninguna tendencia favorable.")

@@ -51,6 +51,13 @@ FAMILIAS = {
     "combinada": "Combinada: compra los N activos con mejor mezcla de subida en 12 meses y poca volatilidad.",
     "momentum_filtro": "Momentum con filtro de mercado: momentum de 12 meses, pero solo cuando el conjunto del "
                        "mercado está por encima de su media de 10 meses; si no, todo en liquidez.",
+    "revisiones": "Revisiones de analistas: compra las N empresas a las que más analistas han subido el precio "
+                  "objetivo en los últimos 3 meses (frente a los que lo han bajado).",
+    "potencial": "Potencial de analistas: compra las N empresas cuyo precio objetivo está más por encima del precio.",
+    "sorpresa": "Sorpresa en resultados: compra las N empresas que más superaron lo esperado en sus últimos resultados.",
+    "momentum_revisiones": "Momentum + revisiones: mezcla la subida de 12 meses con las revisiones de los analistas.",
+    "momentum_sorpresa": "Momentum + sorpresa: mezcla la subida de 12 meses con la sorpresa en resultados.",
+    "triple": "Triple: mezcla subida de 12 meses, revisiones de analistas y sorpresa en resultados.",
     "todos": "Comprar todo: reparte a partes iguales entre todos los activos (la referencia).",
 }
 
@@ -75,12 +82,23 @@ class Variante:
             "reversion": f"Reversión 1 mes · {p.get('n')} activos",
             "combinada": f"Combinada (subida + calma) · {p.get('n')} activos",
             "momentum_filtro": f"Momentum con filtro de mercado · {p.get('n')} activos",
+            "revisiones": f"Revisiones de analistas · {p.get('n')} activos",
+            "potencial": f"Potencial de analistas · {p.get('n')} activos",
+            "sorpresa": f"Sorpresa en resultados · {p.get('n')} activos",
+            "momentum_revisiones": f"Momentum + revisiones · {p.get('n')} activos",
+            "momentum_sorpresa": f"Momentum + sorpresa · {p.get('n')} activos",
+            "triple": f"Triple (momentum + revisiones + sorpresa) · {p.get('n')} activos",
             "todos": "Comprar todo (igual peso)",
         }
         return textos[self.familia]
 
 
-def generar_variantes(n_activos: int) -> list[Variante]:
+COMBINACIONES_EXTRA = {"revisiones": ("revisiones",), "potencial": ("potencial",), "sorpresa": ("sorpresa",),
+                       "momentum_revisiones": ("momentum", "revisiones"), "momentum_sorpresa": ("momentum", "sorpresa"),
+                       "triple": ("momentum", "revisiones", "sorpresa")}
+
+
+def generar_variantes(n_activos: int, extras: tuple[str, ...] = ()) -> list[Variante]:
     """Todas las variantes a probar; el número de activos se adapta al tamaño del universo."""
     ns = sorted({max(2, round(n_activos * f)) for f in (0.1, 0.2, 0.3)})
     v = [Variante("todos", ())]
@@ -92,6 +110,9 @@ def generar_variantes(n_activos: int) -> list[Variante]:
     v += [Variante("tendencia", (("meses", m),)) for m in (6, 10, 12)]
     v += [Variante("combinada", (("n", n),)) for n in ns]
     v += [Variante("momentum_filtro", (("n", n),)) for n in ns]
+    for familia, piezas in COMBINACIONES_EXTRA.items():
+        if all(p == "momentum" or p in extras for p in piezas):
+            v += [Variante(familia, (("n", n),)) for n in ns]
     return v
 
 
@@ -103,6 +124,7 @@ class Universo:
     rentabilidad: pd.DataFrame  # rentabilidad de cada mes (fila t = del fin de t-1 al fin de t)
     volatilidad: pd.DataFrame   # volatilidad diaria de los últimos 126 días, a fin de mes
     liquidez: pd.Series         # rentabilidad mensual de la liquidez (fila t = durante el mes t)
+    extra: dict = field(default_factory=dict)  # puntuaciones mensuales adicionales (analistas, resultados…)
 
 
 MAXIMO_MENSUAL = 3.0   # +300 % en un mes: casi siempre un error de datos (split mal ajustado)
@@ -184,6 +206,16 @@ def pesos(v: Variante, u: Universo) -> pd.DataFrame:
         conjunto = (1 + u.rentabilidad.where(disponible.shift(1, fill_value=False)).mean(axis=1).fillna(0)).cumprod()
         en_tendencia = conjunto > conjunto.rolling(10).mean()
         return _top(momentum, p["n"]).mul(en_tendencia.astype(float), axis=0)
+    if v.familia in COMBINACIONES_EXTRA:
+        rangos = []
+        for pieza in COMBINACIONES_EXTRA[v.familia]:
+            if pieza == "momentum":
+                punt = pr.shift(1) / pr.shift(12) - 1
+            else:
+                punt = u.extra[pieza].reindex(index=pr.index, columns=pr.columns)
+            rangos.append(punt.where(disponible).rank(axis=1, pct=True))
+        # Solo cuentan los activos con todas las piezas disponibles ese mes.
+        return _top(sum(rangos), p["n"])
     if v.familia == "tendencia":
         encima = (pr > pr.rolling(p["meses"]).mean()) & disponible
         total = disponible.sum(axis=1).replace(0, np.nan)
@@ -223,17 +255,21 @@ def _sharpe(r: pd.Series) -> float:
 
 # --- Pruebas de resistencia --------------------------------------------------------------------
 
-TRAMOS = (("2000–2012", "2000-01-01", "2012-12-31"), ("2013–hoy", "2013-01-01", None))
+def mitad(desde: pd.Timestamp, hasta: pd.Timestamp) -> pd.Timestamp:
+    """Fin de año más cercano a la mitad del periodo (para comprobar las dos mitades por separado)."""
+    centro = desde + (hasta - desde) / 2
+    return pd.Timestamp(f"{centro.year}-12-31")
 
 
 def robustez(w: pd.DataFrame, u: Universo, desde: pd.Timestamp) -> dict:
-    """Rentabilidad anual en condiciones peores: comisiones dobles, un mes de retraso y por tramos."""
+    """Rentabilidad anual en condiciones peores: comisiones dobles, un mes de retraso y por mitades."""
     base = rentabilidad_cartera(w, u).loc[desde:]
+    corte = mitad(desde, base.index[-1])
     salida = {"normal": metricas(base).get("rent_anual"),
               "comision_doble": metricas(rentabilidad_cartera(w, u, 2 * COSTE).loc[desde:]).get("rent_anual"),
               "un_mes_tarde": metricas(rentabilidad_cartera(w.shift(1).fillna(0.0), u).loc[desde:]).get("rent_anual")}
-    for nombre, a, b in TRAMOS:
-        salida[nombre] = metricas(base.loc[a:b]).get("rent_anual")
+    salida["primera_mitad"] = metricas(base.loc[:corte]).get("rent_anual")
+    salida["segunda_mitad"] = metricas(base.loc[corte + pd.Timedelta(days=1):]).get("rent_anual")
     return salida
 
 
@@ -314,9 +350,12 @@ class Estudio:
 
 
 def estudiar(datos: dict[str, pd.DataFrame], universo: str, tipo_3m: pd.Series | None = None,
-             nombres: dict[str, str] | None = None, simulaciones: int = SIMULACIONES_AZAR) -> Estudio:
+             nombres: dict[str, str] | None = None, simulaciones: int = SIMULACIONES_AZAR,
+             extra: dict[str, pd.DataFrame] | None = None, primer_anio: int = PRIMER_ANIO_APRENDIZ,
+             minimo: int = MESES_MINIMOS_ELEGIR) -> Estudio:
     u = preparar(datos, tipo_3m)
-    variantes = generar_variantes(len(datos))
+    u.extra = {k: v for k, v in (extra or {}).items() if v is not None and v.notna().any().any()}
+    variantes = generar_variantes(len(datos), tuple(u.extra))
     curvas, todos_pesos = {}, {}
     for v in variantes:
         w = pesos(v, u)
@@ -325,10 +364,16 @@ def estudiar(datos: dict[str, pd.DataFrame], universo: str, tipo_3m: pd.Series |
     curvas = pd.DataFrame(curvas)
     # Empieza cuando la referencia tiene activos invertidos.
     inicio = curvas.index[(todos_pesos["Comprar todo (igual peso)"].shift(1).sum(axis=1) > 0).to_numpy()][0]
+    if u.extra:
+        # Con datos adicionales, se empieza cuando todos cubren al menos a una cuarta parte de los activos.
+        cobertura = [t.notna().sum(axis=1) >= 0.25 * len(datos) for t in u.extra.values()]
+        listos = pd.concat(cobertura, axis=1).all(axis=1)
+        if listos.any():
+            inicio = max(inicio, listos.index[listos.to_numpy()][0] + pd.offsets.MonthEnd(1))
     curvas = curvas.loc[inicio:]
     # El último mes puede estar a medias: se incluye (rentabilidad hasta hoy).
-    serie_aprendiz, elecciones = aprendiz(curvas)
-    serie_ambicioso, elecciones_amb = aprendiz(curvas, criterio="rentabilidad")
+    serie_aprendiz, elecciones = aprendiz(curvas, primer_anio, minimo)
+    serie_ambicioso, elecciones_amb = aprendiz(curvas, primer_anio, minimo, criterio="rentabilidad")
     desde_aprendiz = serie_aprendiz.index[0]
 
     filas = []
@@ -359,7 +404,7 @@ def estudiar(datos: dict[str, pd.DataFrame], universo: str, tipo_3m: pd.Series |
     m_ref = metricas(curvas.loc[desde_aprendiz:, ref])
     # Cartera de hoy: la variante con mejor Sharpe con TODOS los datos hasta hoy (la que usaría el año que viene).
     validas = [c for c in curvas.columns
-               if not c.startswith("Aprendiz") and curvas[c].dropna().shape[0] >= MESES_MINIMOS_ELEGIR]
+               if not c.startswith("Aprendiz") and curvas[c].dropna().shape[0] >= minimo]
     elegida_hoy = max(validas, key=lambda c: _sharpe(curvas[c].dropna()))
     w_hoy = todos_pesos[elegida_hoy].iloc[-1]
     w_hoy = w_hoy[w_hoy > 0].sort_values(ascending=False)
@@ -369,6 +414,7 @@ def estudiar(datos: dict[str, pd.DataFrame], universo: str, tipo_3m: pd.Series |
     resumen = {"universo": universo, "activos": len(datos), "variantes": len(variantes),
                "desde": str(curvas.index[0].date()), "hasta": str(curvas.index[-1].date()),
                "desde_aprendiz": str(desde_aprendiz.date()), "elegida_hoy": elegida_hoy,
+               "corte_mitades": str(mitad(desde_aprendiz, curvas.index[-1]).date()),
                "liquidez_hoy": float(max(0.0, 1 - w_hoy.sum())),
                **{f"aprendiz_{k}": v for k, v in m_apr.items()},
                **{f"ambicioso_{k}": v for k, v in m_amb.items()}, **{f"referencia_{k}": v for k, v in m_ref.items()}}
@@ -413,7 +459,8 @@ def cargar(universo: str, directorio) -> Estudio | None:
 
 UNIVERSOS = {"bolsas": "Bolsas del mundo (índices)", "empresas": "Empresas de la lista",
              "otros": "Materias primas, divisas y criptomonedas",
-             "todo": "Todo junto: bolsas, materias primas, divisas y cripto"}
+             "todo": "Todo junto: bolsas, materias primas, divisas y cripto",
+             "analistas": "Empresas de EE. UU. con datos de analistas y resultados"}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -434,10 +481,24 @@ def main(argv: list[str] | None = None) -> int:
               "empresas": [t for t, v in ACTIVOS.items() if v[1] == "Acción"],
               "otros": [t for t, v in ACTIVOS.items() if v[1] in ("Materia prima", "Divisa", "Criptomoneda")]}
     grupos["todo"] = grupos["bolsas"] + grupos["otros"]
+    grupos["analistas"] = [t for t, v in ACTIVOS.items() if v[1] == "Acción" and v[2] == "Estados Unidos"]
     for clave in args.universos:
         t0 = time.time()
         datos = descargar_varios(grupos[clave], "1990-01-01", hoy)
-        e = estudiar(datos, clave, tipo_3m, nombres)
+        if clave == "analistas":
+            from .datos_empresas import puntuaciones_mensuales
+
+            meses = preparar(datos).precios.index
+            extra = puntuaciones_mensuales(list(datos), meses)
+            if not any(v.notna().any().any() for v in extra.values()):
+                print("  Sin datos de analistas en la caché: ejecuta antes `python -m analizador.datos_empresas`.")
+                continue
+            print("  Cobertura de datos adicionales: " + ", ".join(
+                f"{k} {int(v.notna().sum(axis=1).max())} empresas" for k, v in extra.items()))
+            # Los datos de analistas empiezan hacia 2012: aprendiz desde 2016 con 3 años mínimos.
+            e = estudiar(datos, clave, tipo_3m, nombres, extra=extra, primer_anio=2016, minimo=36)
+        else:
+            e = estudiar(datos, clave, tipo_3m, nombres)
         guardar(e, args.directorio)
         r = e.resumen
         print(f"{UNIVERSOS[clave]}: {len(datos)} activos, {r['variantes']} variantes, {time.time() - t0:.0f} s. "

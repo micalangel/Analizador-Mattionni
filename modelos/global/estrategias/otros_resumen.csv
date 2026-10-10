@@ -6,6 +6,7 @@ desde,1997-11-30
 hasta,2026-10-31
 desde_aprendiz,2003-01-31
 elegida_hoy,Tendencia (media de 6 meses)
+corte_mitades,2014-12-31
 liquidez_hoy,0.5
 aprendiz_rent_anual,0.07984548440015415
 aprendiz_volatilidad,0.20242147861522822

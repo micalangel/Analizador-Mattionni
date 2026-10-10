@@ -279,6 +279,19 @@ que han subido muchísimo los analistas parecen «prudentes» por un efecto de s
   comisiones dobles (11,1 %), un mes de retraso (10,9 %) y en ambos tramos. Sesgos a favor: familias inspiradas en
   estudios posteriores a 2000 y muchos índices sin dividendos (la liquidez sí cobra intereses).
 
+### Datos combinados: analistas y resultados (universo «analistas», 161 empresas de EE. UU.)
+
+- `python -m analizador.datos_empresas` guarda en caché el historial de cambios de precio objetivo (Yahoo,
+  desde ~2012) y las publicaciones de resultados con su sorpresa. Puntuaciones mensuales sin mirar al futuro
+  (solo lo publicado antes del día de fin de mes): revisiones netas a 90 días, potencial (consenso / precio − 1)
+  y sorpresa de la última publicación de los últimos 100 días.
+- Familias nuevas: revisiones, potencial, sorpresa, momentum + revisiones, momentum + sorpresa y triple (suma de
+  rangos). Aprendiz desde 2016 con 36 meses mínimos.
+- Resultado (octubre de 2026, 2012–2026): ninguna señal de analistas ganó a comprar todo (23,2 % anual). Revisiones
+  21 % (no distinguible del azar), sorpresa 24 %, combinaciones con momentum peores que el momentum solo, y
+  **potencial de analistas, la peor** (17–19 %, por debajo de la mayoría de carteras al azar): un precio objetivo
+  muy por encima del precio suele indicar empresas castigadas que siguen haciéndolo peor.
+
 ## 16. Limitaciones metodológicas
 
 - La normalidad subestima las colas; con niveles de confianza altos (95 %) la cobertura suele quedar
