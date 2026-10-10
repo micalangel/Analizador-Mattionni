@@ -58,6 +58,10 @@ FAMILIAS = {
     "momentum_revisiones": "Momentum + revisiones: mezcla la subida de 12 meses con las revisiones de los analistas.",
     "momentum_sorpresa": "Momentum + sorpresa: mezcla la subida de 12 meses con la sorpresa en resultados.",
     "triple": "Triple: mezcla subida de 12 meses, revisiones de analistas y sorpresa en resultados.",
+    "ia_1m": "IA a 1 mes: compra los N activos con más probabilidad de subir en un mes según la IA.",
+    "ia_6m": "IA a 6 meses: compra los N activos con más probabilidad de subir en 6 meses según la IA.",
+    "ia_1a": "IA a 1 año: compra los N activos con más probabilidad de subir en un año según la IA.",
+    "momentum_ia": "Momentum + IA: mezcla la subida de 12 meses con la probabilidad de la IA a 6 meses.",
     "todos": "Comprar todo: reparte a partes iguales entre todos los activos (la referencia).",
 }
 
@@ -88,6 +92,10 @@ class Variante:
             "momentum_revisiones": f"Momentum + revisiones · {p.get('n')} activos",
             "momentum_sorpresa": f"Momentum + sorpresa · {p.get('n')} activos",
             "triple": f"Triple (momentum + revisiones + sorpresa) · {p.get('n')} activos",
+            "ia_1m": f"IA a 1 mes · {p.get('n')} activos",
+            "ia_6m": f"IA a 6 meses · {p.get('n')} activos",
+            "ia_1a": f"IA a 1 año · {p.get('n')} activos",
+            "momentum_ia": f"Momentum + IA · {p.get('n')} activos",
             "todos": "Comprar todo (igual peso)",
         }
         return textos[self.familia]
@@ -95,7 +103,37 @@ class Variante:
 
 COMBINACIONES_EXTRA = {"revisiones": ("revisiones",), "potencial": ("potencial",), "sorpresa": ("sorpresa",),
                        "momentum_revisiones": ("momentum", "revisiones"), "momentum_sorpresa": ("momentum", "sorpresa"),
-                       "triple": ("momentum", "revisiones", "sorpresa")}
+                       "triple": ("momentum", "revisiones", "sorpresa"),
+                       "ia_1m": ("ia_1m",), "ia_6m": ("ia_6m",), "ia_1a": ("ia_1a",),
+                       "momentum_ia": ("momentum", "ia_6m")}
+HORIZONTES_IA = {"ia_1m": 21, "ia_6m": 126, "ia_1a": 252}
+
+
+def puntuaciones_ia(datos: dict[str, pd.DataFrame], meses: pd.DatetimeIndex, directorio,
+                    mercado: pd.Series | None = None) -> dict[str, pd.DataFrame]:
+    """Probabilidad de subida de la IA de dirección a fin de cada mes, siempre fuera de muestra.
+
+    Cada fecha usa el modelo entrenado solo con resultados conocidos antes de empezar su año
+    (``direccion.serie_probabilidades``).
+    """
+    from . import direccion as dr
+
+    salida = {}
+    for clave, h in HORIZONTES_IA.items():
+        conjunto = dr.cargar(h, directorio, "ia")
+        if conjunto is None:
+            continue
+        columnas = {}
+        for t, df in datos.items():
+            try:
+                prob = dr.serie_probabilidades(df, conjunto, mercado).dropna()
+            except Exception:  # noqa: BLE001 - un activo con datos raros no para el estudio
+                continue
+            if len(prob):
+                prob.index = pd.DatetimeIndex(prob.index).tz_localize(None) if prob.index.tz else prob.index
+                columnas[t] = prob.resample("ME").last().reindex(meses)
+        salida[clave] = pd.DataFrame(columnas).reindex(meses)
+    return salida
 
 
 def generar_variantes(n_activos: int, extras: tuple[str, ...] = ()) -> list[Variante]:
@@ -472,6 +510,8 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="analizador.estrategias", description=__doc__.splitlines()[0], epilog=AVISO_LEGAL)
     p.add_argument("--universos", nargs="*", default=list(UNIVERSOS))
     p.add_argument("--directorio", default=str(DIRECTORIO))
+    p.add_argument("--sin-ia", dest="con_ia", action="store_false",
+                   help="No usa la probabilidad de la IA como puntuación (más rápido)")
     args = p.parse_args(argv)
     hoy = date.today()
     tipo = descargar_varios(["^IRX"], "1990-01-01", hoy).get("^IRX")
@@ -498,7 +538,13 @@ def main(argv: list[str] | None = None) -> int:
             # Los datos de analistas empiezan hacia 2012: aprendiz desde 2016 con 3 años mínimos.
             e = estudiar(datos, clave, tipo_3m, nombres, extra=extra, primer_anio=2016, minimo=36)
         else:
-            e = estudiar(datos, clave, tipo_3m, nombres)
+            extra = None
+            if args.con_ia:
+                from .indices import MERCADO
+
+                mercado = descargar_varios([MERCADO], "1990-01-01", hoy)[MERCADO]["Close"]
+                extra = puntuaciones_ia(datos, preparar(datos).precios.index, args.directorio, mercado)
+            e = estudiar(datos, clave, tipo_3m, nombres, extra=extra)
         guardar(e, args.directorio)
         r = e.resumen
         print(f"{UNIVERSOS[clave]}: {len(datos)} activos, {r['variantes']} variantes, {time.time() - t0:.0f} s. "

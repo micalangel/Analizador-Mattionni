@@ -62,14 +62,20 @@ CONCLUSIONES = {
                 "mercado. Las cifras están infladas porque la lista solo tiene empresas que sobrevivieron.",
     "otros": "En materias primas, divisas y cripto <b>ninguna estrategia gana de forma clara a repartir entre todos</b>: "
              "el aprendiz se equivoca a menudo porque lo que funciona cambia mucho de una década a otra.",
-    "todo": "Mezclar bolsas, materias primas, divisas y cripto ayuda: el <b>momentum con filtro de mercado</b> elige "
-            "entre más tipos de activos y reduce las caídas frente a comprar todo.",
+    "todo": "El mejor resultado del laboratorio: mezclando bolsas, materias primas, divisas y cripto, el aprendiz ha "
+            "elegido casi siempre el <b>momentum con filtro de mercado</b>, con más rentabilidad y caídas mucho menores "
+            "que comprar todo, y aguanta las pruebas de resistencia.",
     "analistas": "Novedad: aquí se combinan precios con el historial de <b>analistas</b> y <b>resultados</b>. Conclusión "
                  "honesta: las revisiones de los analistas no ganan a comprar todo, la sorpresa en resultados apenas "
                  "aporta, y comprar donde los analistas ven más potencial ha sido <b>lo peor</b>. Lo que mejor "
                  "funciona sigue siendo el momentum (inflado por el sesgo de supervivencia).",
 }
 nota(f"<b>Qué ha descubierto el laboratorio:</b> {CONCLUSIONES.get(universo, '')}", "verde")
+if universo != "analistas":
+    nota("<b>¿Y si elegimos con la IA?</b> También se prueba invertir en los activos con más probabilidad de subir "
+         "según la IA de esta web. Resultado: no gana a comprar todo, y en bolsas lo hace peor que elegir al azar. La "
+         "IA acierta bastante si algo estará más arriba (las bolsas suelen subir), pero no sabe <i>cuál</i> subirá "
+         "más: tiende a elegir lo más tranquilo, que luego sube poco.")
 
 if universo in ("empresas", "analistas"):
     nota("<b>Ojo con las empresas:</b> la lista es la de hoy, así que solo incluye las que sobrevivieron y "
@@ -226,6 +232,8 @@ st.markdown(f"""
   después de 2000. Elegir qué probar sabiendo eso favorece un poco al pasado.
 - **Índices sin dividendos:** muchos índices no incluyen dividendos, y la liquidez sí cobra intereses. Eso favorece
   algo a las estrategias que salen al mercado (unos 2 puntos al año cuando están fuera).
+- **Materias primas y divisas:** los precios de materias primas son de futuros y no incluyen el coste de
+  renovarlos cada mes (los fondos reales suelen ganar algo menos); las divisas, sin los intereses de cada moneda.
 - **Lo que no aparece:** impuestos, cambio de divisa y el esfuerzo de seguir la estrategia durante años malos.
   Con comisiones de {es.COSTE:.1%} por cambio; en la prueba de resistencia, el doble.
 """.replace("0.2%", "0,2 %"))

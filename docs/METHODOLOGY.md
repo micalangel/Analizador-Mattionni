@@ -292,6 +292,16 @@ que han subido muchísimo los analistas parecen «prudentes» por un efecto de s
   **potencial de analistas, la peor** (17–19 %, por debajo de la mayoría de carteras al azar): un precio objetivo
   muy por encima del precio suele indicar empresas castigadas que siguen haciéndolo peor.
 
+### ¿Sirve la IA para elegir? (familias «ia_1m», «ia_6m», «ia_1a», «momentum_ia»)
+
+- Puntuación: probabilidad de subida de la IA de dirección («ia») a fin de mes, fuera de muestra (modelo del año).
+- Resultado (octubre de 2026): en bolsas, elegir los índices con más probabilidad a 6 meses o 1 año dio un 3–6 %
+  anual frente al 8,7 % de comprar todo, peor que la mayoría de carteras al azar; en empresas, apenas mejor que
+  comprar todo; combinada con el momentum, peor que el momentum solo. La IA de dirección calibra si algo estará
+  más arriba, pero no ordena qué subirá más (prefiere activos tranquilos con historial alcista).
+- Mejor resultado: «todo junto» (61 activos), aprendiz desde 2002 con 15,1 % anual y peor caída −12 % frente a
+  9,1 % y −39 %, eligiendo casi siempre momentum con filtro de mercado. Precios de futuros sin coste de renovación.
+
 ## 16. Limitaciones metodológicas
 
 - La normalidad subestima las colas; con niveles de confianza altos (95 %) la cobertura suele quedar
