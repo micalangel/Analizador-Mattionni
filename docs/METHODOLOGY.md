@@ -235,6 +235,21 @@ histórico de movimientos e IA global. Sobre las fechas comunes:
   la dominan dos episodios largos (2008-09 y 2020). Por episodios, el S&P 500 acabó más arriba en 15 de 21
   (6 de 11 antes de 2010; 9 de 10 desde 2010).
 
+## 15 bis. Precio objetivo de los analistas y su historial de aciertos
+
+Yahoo Finance guarda cada cambio de precio objetivo de cada firma (sobre todo en empresas de EE. UU.,
+desde 2012 aprox.). Cada fin de mes se calcula el **consenso**: la mediana del último objetivo de
+cada firma publicado en los 12 meses anteriores (mínimo 3 firmas), usando solo información
+disponible ese día. Los objetivos anteriores a un split se ajustan (eligiendo la versión, ajustada
+o no, más coherente con el precio de ese día) y se descartan los incoherentes (fuera de 1/5–5× el
+precio).
+
+Cada consenso con un año ya cumplido se compara con el precio un año después (cierre ajustado por
+splits, no por dividendos, como los objetivos): acierto de dirección, % de veces que llegó al
+objetivo al año o lo tocó durante el año, error absoluto medio y diferencia media entre lo
+anunciado y lo ocurrido. Las muestras mensuales se solapan y no son independientes. En empresas
+que han subido muchísimo los analistas parecen «prudentes» por un efecto de selección.
+
 ## 16. Limitaciones metodológicas
 
 - La normalidad subestima las colas; con niveles de confianza altos (95 %) la cobertura suele quedar

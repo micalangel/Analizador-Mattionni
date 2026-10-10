@@ -41,7 +41,7 @@ si esos rangos aciertan tanto como dicen.
   índices mundiales), la que mejor haya funcionado en sus datos recientes. Fuera de muestra, en los 37
   índices, la IA acierta el lado el 55,5 % (5 días), 58,8 % (1 mes), 65,2 % (6 meses) y 67,5 % (1 año),
   frente a 55,3 %, 58,2 %, 62,7 % y 65,4 % de la frecuencia histórica: aporta poco a corto plazo.
-- **Analizar una empresa:** toda su información en pestañas: qué hace, valoración (PER actual frente a **su
+- **Analizar una empresa:** toda su información en pestañas: qué hace, precio objetivo de los analistas y **si han acertado antes con esa empresa** (con una guía de cómo usar esa información), valoración (PER actual frente a **su
   propia media de 10 años** y a su sector, PER esperado, PEG, precio/ventas, EV/EBITDA), rentabilidad y deuda
   (márgenes, ROE, ROA, caja neta, liquidez), crecimiento, dividendos (rentabilidad real del último año, años
   sin bajar), accionariado, opinión de los analistas (como dato de terceros), análisis técnico objetivo (tendencia,

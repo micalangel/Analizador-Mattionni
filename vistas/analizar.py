@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
 
+from analizador import analistas as an
 from analizador import ficha as fc
 from analizador import noticias as nt
 from analizador import per_historico as ph
@@ -40,6 +41,20 @@ def datos_per(ticker: str):
         return ph.calcular(precios, publicaciones, oficial)
     except Exception:
         return None
+
+
+@st.cache_data(show_spinner="Revisando el historial de los analistas…", ttl=60 * 60 * 12)
+def datos_analistas(ticker: str):
+    vacio = pd.DataFrame()
+    try:
+        precios_s, cambios, splits = an.descargar(ticker)
+        objetivos = an.normalizar(cambios, precios_s, splits)
+        if objetivos.empty:
+            return precios_s, objetivos, vacio, vacio
+        consenso_m = an.consenso(objetivos, an.fin_de_mes(precios_s.loc[objetivos["fecha"].min():]))
+        return precios_s, objetivos, consenso_m, an.historial(precios_s, consenso_m)
+    except Exception:
+        return pd.Series(dtype=float), vacio, vacio, vacio
 
 
 @st.cache_data(show_spinner="Consultando resultados y noticias…", ttl=60 * 60)
@@ -128,8 +143,8 @@ with tarjeta("cabecera", "azul"):
     st.markdown(f"[Ver probabilidad y rango de precio →](/proyeccion?activo={ticker}) · "
                 f"[Simular estrategias →](/simulador)")
 
-pestanas = st.tabs(["Resumen", "Valoración", "Rentabilidad y deuda", "Crecimiento", "Dividendos",
-                    "Accionistas y analistas", "Análisis técnico", "Resultados y noticias"])
+pestanas = st.tabs(["Resumen", "Precio objetivo", "Valoración", "Rentabilidad y deuda", "Crecimiento", "Dividendos",
+                    "Accionistas", "Análisis técnico", "Resultados y noticias"])
 
 # --- Resumen ------------------------------------------------------------------------------------
 
@@ -149,9 +164,148 @@ with pestanas[0]:
     if web:
         st.caption(f"Web oficial: {web}")
 
-# --- Valoración ----------------------------------------------------------------------------------
+# --- Precio objetivo de los analistas ------------------------------------------------------------
 
 with pestanas[1]:
+    st.markdown("<div class='nota'>En Yahoo o Investing ves el precio objetivo de los analistas. Aquí ves además "
+                "<b>si los analistas han acertado antes con esta empresa</b>, para que sepas cuánto fiarte de lo que "
+                "dicen ahora.</div>", unsafe_allow_html=True)
+    n_analistas = f.v("numberOfAnalystOpinions")
+    objetivo, bajo_o, alto_o = f.v("targetMeanPrice"), f.v("targetLowPrice"), f.v("targetHighPrice")
+    p_sin_div, objetivos, consenso_m, hist = datos_analistas(ticker)
+    fiab = an.fiabilidad(hist)
+    if not n_analistas or not objetivo:
+        st.write("Ningún analista publica precio objetivo de esta empresa en Yahoo Finance.")
+    else:
+        st.markdown("<div class='titulo-bloque' style='margin-top:1rem'>Cuánto creen que valdrá dentro de un año</div>",
+                    unsafe_allow_html=True)
+        potencial = objetivo / cierre - 1
+        with tarjeta("objetivo", "verde" if potencial > 0 else "ambar"):
+            c1, c2 = st.columns([1, 1.4])
+            with c1:
+                st.markdown(f"<div class='etiqueta'>Precio objetivo medio a 12 meses</div>"
+                            f"<div class='cifra' style='font-size:2.2rem;white-space:nowrap'>{cifra(objetivo)} {f.moneda}</div>"
+                            f"<div style='font-size:1.1rem;font-weight:600;color:{VERDE if potencial > 0 else ROJO}'>"
+                            f"{cifra(potencial * 100, '{:+.1f}')} % respecto a hoy ({cifra(cierre)})</div>"
+                            f"<div class='suave' style='margin-top:.3rem'>Media de {int(n_analistas)} analistas. Opinión "
+                            f"media: <b>{fc.RECOMENDACIONES.get(f.info.get('recommendationKey'), '—')}</b>.</div>",
+                            unsafe_allow_html=True)
+            with c2:
+                if bajo_o and alto_o:
+                    lo, hi = min(bajo_o, cierre), max(alto_o, cierre)
+                    margen = (hi - lo) * 0.05 or 1
+                    lo, hi = lo - margen, hi + margen
+
+                    def x(v):
+                        return f"{(v - lo) / (hi - lo):.1%}"
+
+                    st.markdown(
+                        f"<div class='etiqueta'>Del objetivo más bajo al más alto</div>"
+                        f"<div style='position:relative;height:64px;margin-top:.4rem'>"
+                        f"<div style='position:absolute;top:26px;left:{x(bajo_o)};width:calc({x(alto_o)} - {x(bajo_o)});"
+                        f"height:10px;background:#D1FAE5;border-radius:5px'></div>"
+                        f"<div style='position:absolute;top:18px;left:calc({x(objetivo)} - 2px);width:4px;height:26px;"
+                        f"background:{VERDE};border-radius:2px'></div>"
+                        f"<div style='position:absolute;top:18px;left:calc({x(cierre)} - 2px);width:4px;height:26px;"
+                        f"background:#111;border-radius:2px'></div>"
+                        f"<div style='position:absolute;top:0;left:{x(cierre)};transform:translateX(-50%);font-size:.75rem;"
+                        f"white-space:nowrap'>Hoy</div>"
+                        f"<div style='position:absolute;top:46px;left:{x(objetivo)};transform:translateX(-50%);font-size:.75rem;"
+                        f"color:{VERDE};white-space:nowrap'>Media</div></div>"
+                        f"<div style='display:flex;justify-content:space-between;font-size:.85rem;color:{GRIS_T}'>"
+                        f"<span>Más bajo: {cifra(bajo_o)} ({cifra((bajo_o / cierre - 1) * 100, '{:+.0f}')} %)</span>"
+                        f"<span>Más alto: {cifra(alto_o)} ({cifra((alto_o / cierre - 1) * 100, '{:+.0f}')} %)</span></div>",
+                        unsafe_allow_html=True)
+            rec = f.recomendaciones
+            if isinstance(rec, pd.DataFrame) and not rec.empty and "strongBuy" in rec:
+                fila = rec.iloc[0]
+                partes = [("Compra fuerte", "strongBuy", "#047857"), ("Compra", "buy", "#34D399"),
+                          ("Mantener", "hold", "#9CA3AF"), ("Venta", "sell", "#F87171"), ("Venta fuerte", "strongSell", "#B91C1C")]
+                total = sum(int(fila.get(k, 0)) for _, k, _ in partes) or 1
+                barra = "".join(f"<div title='{n}: {int(fila.get(k, 0))}' style='width:{int(fila.get(k, 0)) / total:.0%};"
+                                f"background:{c};height:100%'></div>" for n, k, c in partes if fila.get(k, 0))
+                leyenda = " · ".join(f"{n}: {int(fila.get(k, 0))}" for n, k, _ in partes)
+                st.markdown(f"<div class='etiqueta' style='margin-top:.8rem'>Qué aconsejan</div>"
+                            f"<div style='display:flex;height:14px;border-radius:7px;overflow:hidden'>{barra}</div>"
+                            f"<div class='suave' style='margin-top:.3rem'>{leyenda}</div>", unsafe_allow_html=True)
+
+        rev = an.revisiones(objetivos, pd.Timestamp(hoy))
+        if rev["suben"] or rev["bajan"]:
+            tono = "verde" if rev["suben"] > 2 * rev["bajan"] else "ambar" if rev["bajan"] > rev["suben"] else ""
+            tendencia = ("cada vez más optimistas" if tono == "verde" else "menos optimistas que antes" if tono == "ambar"
+                         else "sin una tendencia clara")
+            nota(f"<b>Últimos 3 meses:</b> {rev['suben']} analistas subieron su precio objetivo y {rev['bajan']} lo "
+                 f"bajaron; {rev['mejoran']} mejoraron su opinión y {rev['empeoran']} la empeoraron. Están {tendencia}.",
+                 tono)
+
+    # --- ¿Aciertan con esta empresa? ---
+    st.markdown("<div class='titulo-bloque' style='margin-top:1.2rem'>¿Han acertado antes con esta empresa?</div>",
+                unsafe_allow_html=True)
+    if fiab is None:
+        st.write("Yahoo no guarda el historial de precios objetivo de esta empresa (suele tenerlo solo para empresas "
+                 "de EE. UU.), así que no se puede comprobar cómo han acertado. Toma su objetivo con más cautela.")
+    else:
+        diferencia = fiab.real_medio - fiab.prometido_medio
+        st.markdown(f"Hemos tomado el precio objetivo medio de cada mes de los últimos {fiab.anios:.0f} años y lo hemos "
+                    f"comparado con lo que valía la acción un año después.")
+        cajas([
+            ("Acertaron si subiría o bajaría", f"{fiab.acierto_direccion:.0%}",
+             "Veces que el precio fue en la dirección que marcaba su objetivo."),
+            ("Llegó a su objetivo en un año", f"{fiab.llego_al_ano:.0%}",
+             f"Al cabo de un año estaba en su objetivo o por encima. En algún momento del año lo tocó el {fiab.lo_toco:.0%}."),
+            ("Error típico", f"±{fiab.error_medio * 100:.0f} puntos",
+             "Distancia media entre la subida que anunciaban y la que hubo de verdad."),
+            ("Anunciaban / pasó", f"{fiab.prometido_medio * 100:+.0f} % / {fiab.real_medio * 100:+.0f} %",
+             "Subida media a un año que anunciaban y subida media real."),
+        ])
+        if diferencia > 0.05:
+            texto = (f"Con esta empresa los analistas se han quedado <b>cortos</b>: de media, la acción acabó "
+                     f"{diferencia * 100:.0f} puntos por encima de lo que anunciaban. Ojo: suele pasar en empresas que "
+                     f"han subido muchísimo, algo que nadie preveía y que no tiene por qué repetirse.")
+        elif diferencia < -0.05:
+            texto = (f"Con esta empresa los analistas han sido <b>demasiado optimistas</b>: de media, la acción acabó "
+                     f"{-diferencia * 100:.0f} puntos por debajo de lo que anunciaban.")
+        else:
+            texto = "Con esta empresa, de media, los analistas han acertado bastante bien la subida a un año."
+        nota(texto + f" Su error típico (±{fiab.error_medio * 100:.0f} puntos) indica cuánto puede desviarse el resultado"
+             f" del objetivo actual.", "verde" if abs(diferencia) <= 0.05 else "ambar")
+
+        hace_un_ano = consenso_m["objetivo"].copy()
+        hace_un_ano.index = hace_un_ano.index + pd.Timedelta(days=365)
+        desde = consenso_m.index[0]
+        fig = go.Figure()
+        fig.add_scatter(x=p_sin_div.loc[desde:].index, y=p_sin_div.loc[desde:], name="Precio real",
+                        line=dict(color=COLORES[1], width=2))
+        fig.add_scatter(x=hace_un_ano.index, y=hace_un_ano, name="Lo que decían un año antes que valdría",
+                        line=dict(color=VERDE, width=2, dash="dot"), line_shape="hv")
+        fig.update_layout(title="Precio real frente al objetivo que daban los analistas un año antes",
+                          legend=dict(orientation="h", y=-0.15), hovermode="x unified")
+        st.plotly_chart(estilo(fig, 400), width="stretch")
+        st.caption("Si la línea verde va por encima del precio, se pasaron de optimistas; si va por debajo, se quedaron "
+                   "cortos. Precio sin ajustar por dividendos, como los objetivos de los analistas. Las comparaciones "
+                   "mensuales se solapan, así que con pocos años de datos las cifras orientan pero no son concluyentes.")
+
+    # --- Cómo usar esta información ---
+    st.markdown("<div class='titulo-bloque' style='margin-top:1.2rem'>Cómo usar esta información</div>",
+                unsafe_allow_html=True)
+    st.markdown("""
+1. **El objetivo es a un año y es una media de opiniones.** No dice qué pasará mañana ni es una cifra segura.
+2. **Mira su error típico con esta empresa.** Si prometen +10 % y suelen equivocarse en ±30 puntos, el objetivo dice
+   poco por sí solo. Cuanto menor sea el error típico, más útil es.
+3. **Mira si están de acuerdo.** Si el objetivo más bajo y el más alto están muy separados, hay mucha incertidumbre.
+4. **Mira hacia dónde van las revisiones.** Muchos analistas subiendo su objetivo indica que la empresa va mejor de lo
+   esperado. Los estudios encuentran que esto tiene algo de valor a corto plazo, pero el efecto es pequeño.
+5. **Contrasta con lo demás.** Compara con la [probabilidad de subir de la IA](/proyeccion?activo={t}), el PER frente
+   a su media (pestaña *Valoración*) y la salud de las cuentas. Si todo apunta en la misma dirección, la idea es más
+   sólida; si se contradicen, cuidado.
+6. **Decide tú cuánto arriesgas.** Ninguna fuente acierta siempre: invierte solo lo que puedas mantener si baja,
+   piensa en el plazo y no lo pongas todo en una sola empresa.
+""".replace("{t}", ticker))
+    st.caption("Precios objetivo y opiniones: datos de terceros recogidos por Yahoo Finance, no una predicción de esta web.")
+
+# --- Valoración ----------------------------------------------------------------------------------
+
+with pestanas[2]:
     per = datos_per(ticker)
     medianas, _ = per_referencia()
     sector_cat = sector_de(ticker)
@@ -193,7 +347,7 @@ with pestanas[1]:
 
 # --- Rentabilidad y deuda ---------------------------------------------------------------------
 
-with pestanas[2]:
+with pestanas[3]:
     caja_neta = (f.v("totalCash") or 0) - (f.v("totalDebt") or 0) if f.v("totalCash") is not None else None
     cajas([
         ("Margen bruto", cifra(f.v("grossMargins"), "{:.1%}"), "Lo que queda de cada venta tras el coste de lo vendido."),
@@ -214,7 +368,7 @@ with pestanas[2]:
 
 # --- Crecimiento --------------------------------------------------------------------------------
 
-with pestanas[3]:
+with pestanas[4]:
     cajas([
         ("Crecimiento de ventas", cifra(f.v("revenueGrowth"), "{:+.1%}"), "Último trimestre frente al mismo del año anterior."),
         ("Crecimiento del beneficio", cifra(f.v("earningsGrowth"), "{:+.1%}"), "Último trimestre frente al mismo del año anterior."),
@@ -238,7 +392,7 @@ with pestanas[3]:
 
 # --- Dividendos ----------------------------------------------------------------------------------
 
-with pestanas[4]:
+with pestanas[5]:
     rent = fc.rentabilidad_dividendo(f.dividendos, cierre)
     por_ano = fc.dividendos_por_ano(f.dividendos)
     if rent is None or por_ano.empty:
@@ -256,9 +410,9 @@ with pestanas[4]:
         fig.update_layout(title=f"Dividendo pagado por acción cada año ({f.moneda})", xaxis_type="category")
         st.plotly_chart(estilo(fig, 300), width="stretch")
 
-# --- Accionistas y analistas ----------------------------------------------------------------
+# --- Accionistas ----------------------------------------------------------------------------
 
-with pestanas[5]:
+with pestanas[6]:
     st.markdown("<div class='titulo-bloque'>Quién tiene las acciones</div>", unsafe_allow_html=True)
     cajas([
         ("Directivos y fundadores", cifra(f.v("heldPercentInsiders"), "{:.1%}"),
@@ -267,36 +421,10 @@ with pestanas[5]:
         ("Apuestas a la baja", cifra(f.v("shortPercentOfFloat"), "{:.1%}"),
          "Parte de las acciones vendidas «en corto». Por encima del 10 % es mucho."),
     ])
-    st.markdown("<div class='titulo-bloque' style='margin-top:1rem'>Qué dicen los analistas</div>",
-                unsafe_allow_html=True)
-    n_analistas = f.v("numberOfAnalystOpinions")
-    if not n_analistas:
-        st.write("No hay analistas que sigan a esta empresa en Yahoo.")
-    else:
-        rec = f.recomendaciones
-        if isinstance(rec, pd.DataFrame) and not rec.empty and "strongBuy" in rec:
-            fila = rec.iloc[0]
-            partes = [("Compra fuerte", "strongBuy", "#047857"), ("Compra", "buy", "#34D399"), ("Mantener", "hold", "#9CA3AF"),
-                      ("Venta", "sell", "#F87171"), ("Venta fuerte", "strongSell", "#B91C1C")]
-            total = sum(int(fila.get(k, 0)) for _, k, _ in partes) or 1
-            barra = "".join(f"<div title='{n}: {int(fila.get(k, 0))}' style='width:{int(fila.get(k, 0)) / total:.0%};"
-                            f"background:{c};height:100%'></div>" for n, k, c in partes if fila.get(k, 0))
-            leyenda = " · ".join(f"{n}: {int(fila.get(k, 0))}" for n, k, _ in partes)
-            st.markdown(f"<div style='display:flex;height:14px;border-radius:7px;overflow:hidden'>{barra}</div>"
-                        f"<div class='suave' style='margin-top:.3rem'>{leyenda}</div>", unsafe_allow_html=True)
-        objetivo, bajo_o, alto_o = f.v("targetMeanPrice"), f.v("targetLowPrice"), f.v("targetHighPrice")
-        cajas([
-            ("Opinión media", fc.RECOMENDACIONES.get(f.info.get("recommendationKey"), "—"), f"De {int(n_analistas)} analistas."),
-            ("Precio objetivo medio", f"{cifra(objetivo)} {f.moneda}",
-             f"{(objetivo / cierre - 1):+.0%} respecto a hoy." if objetivo else ""),
-            ("Rango de sus objetivos", f"{cifra(bajo_o)} – {cifra(alto_o)}", "El más bajo y el más alto de los analistas."),
-        ])
-        st.caption("Datos de terceros recogidos por Yahoo Finance, no una predicción de esta web. Los precios objetivo "
-                   "de los analistas se equivocan a menudo y suelen ser optimistas.")
 
 # --- Análisis técnico ----------------------------------------------------------------------------
 
-with pestanas[6]:
+with pestanas[7]:
     indice_t, indice_n = INDICE_DEL_PAIS.get(pais_de(ticker), (MERCADO, "S&P 500"))
     referencia = cargar((indice_t,), INICIO, hoy).get(indice_t)
     lecturas = tc.analizar(precios, referencia["Close"] if referencia is not None else None, f"el {indice_n}")
@@ -345,7 +473,7 @@ with pestanas[6]:
 
 # --- Resultados y noticias ---------------------------------------------------------------------
 
-with pestanas[7]:
+with pestanas[8]:
     publicaciones, estudio, noticias = datos_resultados(ticker, hoy)
     prox = proxima_publicacion(publicaciones)
     r = resumen_publicaciones(estudio) if not estudio.empty else {"n": 0}
