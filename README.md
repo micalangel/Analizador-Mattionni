@@ -41,6 +41,12 @@ si esos rangos aciertan tanto como dicen.
   índices mundiales), la que mejor haya funcionado en sus datos recientes. Fuera de muestra, en los 37
   índices, la IA acierta el lado el 55,5 % (5 días), 58,8 % (1 mes), 65,2 % (6 meses) y 67,5 % (1 año),
   frente a 55,3 %, 58,2 %, 62,7 % y 65,4 % de la frecuencia histórica: aporta poco a corto plazo.
+- **Analizar una empresa:** toda su información en pestañas: qué hace, valoración (PER actual frente a **su
+  propia media de 10 años** y a su sector, PER esperado, PEG, precio/ventas, EV/EBITDA), rentabilidad y deuda
+  (márgenes, ROE, ROA, caja neta, liquidez), crecimiento, dividendos (rentabilidad real del último año, años
+  sin bajar), accionariado, opinión de los analistas (como dato de terceros), análisis técnico objetivo (tendencia,
+  impulso, volatilidad, soportes y resistencias, rendimiento frente a su índice, velas con medias, volumen y RSI)
+  y resultados y noticias.
 - **Mi lista, alertas, calendario y comparar:** sigue tus activos favoritos con alertas diarias (caída fuerte,
   volumen inusual, pánico, resultados cercanos, movimientos muy grandes), consulta cuándo presentan resultados y
   cuánto suelen moverse ese día, y compara de 2 a 4 activos lado a lado. `python -m analizador.alertas --notificar`
@@ -285,6 +291,9 @@ src/analizador/
     alertas.py              Alertas diarias de «Mi lista»
     calendario.py           Próximas presentaciones de resultados y reacción típica
     simulador.py            Simulador educativo de estrategias de compra y venta
+    ficha.py                Datos completos de una empresa (valoración, balance, dividendos, analistas)
+    per_historico.py        PER de cada día y su media histórica
+    tecnico.py              Análisis técnico objetivo: lecturas, soportes y resistencias
     forecast.py             Intervalos de pronóstico
     calibration.py          Informe de calibración
     backtest.py             Motor walk-forward y estrategias de ejemplo

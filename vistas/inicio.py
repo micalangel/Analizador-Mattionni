@@ -50,7 +50,8 @@ html("""
 
 secciones = [
     ("/proyeccion", "c1", "¿Subirá o bajará?", "Una empresa o índice, a un plazo. La página principal."),
-    ("/mi_lista", "c2", "Mi lista", "Tus favoritas, con sus alertas de hoy."),
+    ("/analizar", "c2", "Analizar una empresa", "Toda su información: valoración, cuentas, dividendos, analistas y técnico."),
+    ("/mi_lista", "c3", "Mi lista", "Tus favoritas, con sus alertas de hoy."),
     ("/comparar", "c3", "Comparar", "De 2 a 4 activos lado a lado."),
     ("/calendario", "c1", "Calendario de resultados", "Cuándo presentan cuentas y cuánto suelen moverse."),
     ("/empresas", "c2", "Todas las empresas", "Más de 360, con filtros por país, sector y salud."),

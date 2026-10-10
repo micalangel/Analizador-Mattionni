@@ -22,6 +22,7 @@ estilo_global()
 paginas = st.navigation([
     st.Page("vistas/inicio.py", title="Inicio", icon=":material/home:", default=True),
     st.Page("vistas/proyeccion.py", title="¿Subirá o bajará?", icon=":material/query_stats:", url_path="proyeccion"),
+    st.Page("vistas/analizar.py", title="Analizar una empresa", icon=":material/monitoring:", url_path="analizar"),
     st.Page("vistas/mi_lista.py", title="Mi lista", icon=":material/star:", url_path="mi_lista"),
     st.Page("vistas/comparar.py", title="Comparar", icon=":material/compare_arrows:", url_path="comparar"),
     st.Page("vistas/calendario.py", title="Calendario de resultados", icon=":material/event:", url_path="calendario"),

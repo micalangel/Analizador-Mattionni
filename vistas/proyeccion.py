@@ -363,7 +363,9 @@ with seccion("plazos", "azul"):
 
 if tipo_de(ticker) in {"Acción", "Otro"} and "Volume" in datos and (datos["Volume"] > 0).mean() > 0.8:
     with seccion("ficha", "blanco"):
-        st.markdown(f"<div class='titulo-bloque'>Ficha de {nombre_activo}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='titulo-bloque'>Ficha de {nombre_activo}</div>"
+                    f"<a href='/analizar?activo={ticker}' target='_self'>Analizar a fondo (valoración, dividendos, "
+                    "analistas, análisis técnico) →</a>", unsafe_allow_html=True)
         t_salud, t_volumen, t_noticias = st.tabs(["Salud de la empresa", "Volumen", "Noticias"])
 
         with t_salud:
