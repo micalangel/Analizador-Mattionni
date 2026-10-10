@@ -114,6 +114,10 @@ def construir_caracteristicas(
     bb = bandas_bollinger(c, 20, 2)
     f["bollinger_b"] = (c - bb["inferior"]) / (bb["superior"] - bb["inferior"])
     f["drawdown_252"] = c / c.rolling(252, min_periods=60).max() - 1
+    # Tendencia de largo plazo (5 años): los mercados muy por encima o por debajo de su tendencia
+    # tienden a corregir parcialmente a varios años vista.
+    f["ret_1260"] = np.log(c / c.shift(1260))
+    f["drawdown_1260"] = c / c.rolling(1260, min_periods=750).max() - 1
 
     if {"High", "Low"} <= set(datos.columns):
         f["rango_10"] = ((datos["High"] - datos["Low"]) / c).rolling(10).mean()
@@ -147,16 +151,58 @@ def _caracteristicas_mercado(indice: pd.DatetimeIndex, mercado: pd.Series) -> pd
 
 
 TICKERS_MACRO = {"vix": "^VIX", "tipo_10a": "^TNX", "tipo_3m": "^IRX"}
+# Información adicional de la variante «ia_amplia»: dólar, petróleo y oro.
+TICKERS_AMPLIO = {"dolar": "DX-Y.NYB", "petroleo": "CL=F", "oro": "GC=F"}
 
 
-def datos_macro(descargas: dict[str, pd.DataFrame]) -> pd.DataFrame | None:
-    """Une los cierres de VIX y tipos de interés (descargados con ``TICKERS_MACRO``)."""
-    columnas = {c: descargas[t]["Close"] for c, t in TICKERS_MACRO.items() if t in descargas}
-    return pd.DataFrame(columnas).sort_index() if columnas else None
+def amplitud(indices: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    """Salud del conjunto de bolsas del mundo cada día.
+
+    * ``amplitud_mm200``: proporción de índices por encima de su media de 200 sesiones.
+    * ``amplitud_ret_60``: rentabilidad media de los índices en las últimas 60 sesiones.
+    Cada índice usa su propio calendario; en días sin sesión se mantiene su último valor.
+    """
+    encima, rent = {}, {}
+    for t, df in indices.items():
+        c = df["Close"].astype(float).dropna()
+        mm = c.rolling(200).mean()
+        encima[t] = (c > mm).astype(float).where(mm.notna())
+        rent[t] = np.log(c / c.shift(60))
+    if not encima:
+        return pd.DataFrame()
+    e = pd.DataFrame(encima).sort_index().ffill(limit=5)
+    r = pd.DataFrame(rent).sort_index().ffill(limit=5)
+    n = e.notna().sum(axis=1)
+    return pd.DataFrame({"amplitud_mm200": e.mean(axis=1).where(n >= 5),
+                         "amplitud_ret_60": r.mean(axis=1).where(n >= 5)})
+
+
+def datos_macro(descargas: dict[str, pd.DataFrame],
+                indices: dict[str, pd.DataFrame] | None = None) -> pd.DataFrame | None:
+    """Une los cierres de VIX, tipos, dólar, petróleo y oro, y la amplitud de las bolsas mundiales."""
+    tickers = {**TICKERS_MACRO, **TICKERS_AMPLIO}
+    columnas = {c: descargas[t]["Close"] for c, t in tickers.items() if t in descargas}
+    if not columnas:
+        return None
+    macro = pd.DataFrame(columnas).sort_index()
+    if indices:
+        macro = macro.join(amplitud(indices), how="outer")
+    return macro
+
+
+def descargar_macro(inicio, fin, indices: dict[str, pd.DataFrame] | None = None) -> pd.DataFrame | None:
+    """Descarga todo lo necesario para ``datos_macro`` (incluidos los índices si no se pasan)."""
+    from .data import descargar_varios
+    from .indices import INDICES
+
+    descargas = descargar_varios(list(TICKERS_MACRO.values()) + list(TICKERS_AMPLIO.values()), inicio, fin)
+    if indices is None:
+        indices = descargar_varios(list(INDICES), inicio, fin)
+    return datos_macro(descargas, indices)
 
 
 def _caracteristicas_macro(indice: pd.DatetimeIndex, macro: pd.DataFrame) -> pd.DataFrame:
-    """Miedo (VIX) y tipos de interés de EE. UU., según su último cierre ANTERIOR a cada fecha."""
+    """VIX, tipos de EE. UU., dólar, petróleo, oro y amplitud, según su último cierre ANTERIOR a cada fecha."""
     m = macro.sort_index().ffill()
     propias = pd.DataFrame(index=m.index)
     if "vix" in m:
@@ -169,6 +215,14 @@ def _caracteristicas_macro(indice: pd.DatetimeIndex, macro: pd.DataFrame) -> pd.
         propias["curva_cambio_60"] = curva - curva.shift(60)
     if "tipo_10a" in m:
         propias["tipo_10a_cambio_252"] = m["tipo_10a"] - m["tipo_10a"].shift(252)
+    for clave in TICKERS_AMPLIO:
+        if clave in m:
+            serie = m[clave].where(m[clave] > 0)
+            propias[f"{clave}_ret_60"] = np.log(serie / serie.shift(60))
+            propias[f"{clave}_ret_252"] = np.log(serie / serie.shift(252))
+    for clave in ("amplitud_mm200", "amplitud_ret_60"):
+        if clave in m:
+            propias[clave] = m[clave]
     pos = m.index.searchsorted(indice, side="left") - 1
     valores = propias.to_numpy()[np.clip(pos, 0, None)]
     valores[pos < 0] = np.nan

@@ -150,12 +150,13 @@ def evaluar_panel(panel: pd.DataFrame, conjunto: ConjuntoDireccion) -> dict:
 
 def entrenar_conjunto(datos: dict[str, pd.DataFrame], mercado: pd.Series | None, horizonte: int,
                       primer_anio: int = 1996, paso: int = 2, hoy: pd.Timestamp | None = None,
-                      macro: pd.DataFrame | None = None) -> ConjuntoDireccion:
+                      macro: pd.DataFrame | None = None, variante: str | None = None) -> ConjuntoDireccion:
     panel = preparar_panel(datos, mercado, horizonte, macro)
     hoy = pd.Timestamp(hoy or pd.Timestamp.today().normalize())
     conjunto = ConjuntoDireccion(horizonte, metadatos={"cesta": sorted(datos), "entrenado": str(hoy.date()),
                                                        "muestras_totales": len(panel),
-                                                       "usa_macro": macro is not None})
+                                                       "usa_macro": macro is not None,
+                                                       "variante": variante or ("ia_macro" if macro is not None else "ia")})
     for anio in range(primer_anio, hoy.year + 1, paso):
         m = entrenar(panel, pd.Timestamp(f"{anio}-01-01"))
         if m is not None:
@@ -167,13 +168,17 @@ def entrenar_conjunto(datos: dict[str, pd.DataFrame], mercado: pd.Series | None,
 
 # --- Guardar y cargar ------------------------------------------------------------------
 
-VARIANTES = {"ia": "", "ia_macro": "macro_"}  # clave -> sufijo del archivo
+VARIANTES = {"ia": "", "ia_macro": "macro_"}  # variantes en uso: clave -> sufijo del archivo
+# Experimento descartado (ver docs/METHODOLOGY.md §14): con dólar, petróleo, oro y amplitud mundial la
+# IA empeoró fuera de muestra en todos los plazos. Se puede volver a probar con --experimento-amplio.
+EXPERIMENTALES = {"ia_amplia": "amplia_"}
 NOMBRES_FUENTE = {"frecuencia": "frecuencia histórica", "ia": "IA de dirección",
-                  "ia_macro": "IA de dirección con miedo (VIX) y tipos de interés"}
+                  "ia_macro": "IA de dirección con miedo (VIX) y tipos de interés",
+                  "ia_amplia": "IA de dirección con más información (dólar, petróleo, oro y bolsas del mundo)"}
 
 
 def ruta(horizonte: int, directorio, variante: str = "ia") -> Path:
-    return Path(directorio) / f"ia_direccion_{VARIANTES[variante]}h{horizonte}.joblib"
+    return Path(directorio) / f"ia_direccion_{(VARIANTES | EXPERIMENTALES)[variante]}h{horizonte}.joblib"
 
 
 def guardar(conjunto: ConjuntoDireccion, directorio) -> Path:
@@ -181,7 +186,7 @@ def guardar(conjunto: ConjuntoDireccion, directorio) -> Path:
     import sklearn
 
     conjunto.metadatos["sklearn"] = sklearn.__version__
-    variante = "ia_macro" if conjunto.metadatos.get("usa_macro") else "ia"
+    variante = conjunto.metadatos.get("variante") or ("ia_macro" if conjunto.metadatos.get("usa_macro") else "ia")
     destino = ruta(conjunto.horizonte, directorio, variante)
     destino.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(conjunto, destino, compress=3)

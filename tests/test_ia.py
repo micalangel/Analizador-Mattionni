@@ -109,3 +109,28 @@ def test_pocos_datos_no_entrena():
     datos = generar_ohlcv(200)
     tabla, modelos = ia.serie_intervalos_ia(datos, 10, 0.8, **RAPIDO)
     assert modelos == [] and tabla["inferior"].isna().all()
+
+
+def test_amplitud_y_macro_ampliada_sin_mirar_al_futuro():
+    import numpy as np
+    import pandas as pd
+
+    from analizador.ia import _caracteristicas_macro, amplitud, datos_macro
+
+    fechas = pd.bdate_range("2010-01-01", periods=600)
+    sube = pd.DataFrame({"Close": np.linspace(100, 200, 600)}, index=fechas)
+    baja = pd.DataFrame({"Close": np.linspace(200, 100, 600)}, index=fechas)
+    a = amplitud({f"S{i}": sube for i in range(3)} | {f"B{i}": baja for i in range(3)})
+    assert a["amplitud_mm200"].dropna().iloc[-1] == 0.5
+    assert a["amplitud_mm200"].iloc[:199].isna().all()
+
+    descargas = {"^VIX": pd.DataFrame({"Close": 20.0}, index=fechas),
+                 "DX-Y.NYB": pd.DataFrame({"Close": np.linspace(90, 110, 600)}, index=fechas)}
+    macro = datos_macro(descargas, {"S": sube})
+    f = _caracteristicas_macro(fechas, macro)
+    # Un salto del dólar el último día no afecta a la característica de ese mismo día.
+    macro2 = macro.copy()
+    macro2.loc[fechas[-1], "dolar"] = 500
+    f2 = _caracteristicas_macro(fechas, macro2)
+    assert f2["dolar_ret_60"].iloc[-1] == f["dolar_ret_60"].iloc[-1]
+    assert "amplitud_mm200" in f

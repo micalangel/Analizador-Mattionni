@@ -300,15 +300,19 @@ def estudio_indices(datos: dict[str, pd.DataFrame], conjuntos: dict, mercado: pd
 
 # --- Línea de comandos -----------------------------------------------------------------
 
-def _entrenar_direccion(datos, mercado, h, directorio, macro=None):
-    """Entrena las dos variantes (sin y con VIX/tipos); cada activo elegirá luego la suya."""
+def _entrenar_direccion(datos, mercado, h, directorio, macro=None, amplio=False):
+    """Entrena las variantes (sin macro y con VIX/tipos; con todo si ``amplio``); cada activo elegirá la suya."""
     from . import direccion
 
+    from .ia import TICKERS_MACRO
+
     resultado = {}
-    for clave, mc in (("ia", None), ("ia_macro", macro)):
-        if clave == "ia_macro" and macro is None:
+    base = macro[[c for c in TICKERS_MACRO if c in macro]] if macro is not None else None
+    variantes = [("ia", None), ("ia_macro", base)] + ([("ia_amplia", macro)] if amplio else [])
+    for clave, mc in variantes:
+        if clave != "ia" and macro is None:
             continue
-        conjunto = direccion.entrenar_conjunto(datos, mercado, h, macro=mc)
+        conjunto = direccion.entrenar_conjunto(datos, mercado, h, macro=mc, variante=clave)
         destino = direccion.guardar(conjunto, directorio)
         ev = conjunto.metadatos["evaluacion"]
         print(f"  Guardado {destino.name}: acierto de dirección {ev['acierto_ia']:.1%} frente a "
@@ -329,6 +333,8 @@ def main(argv: list[str] | None = None) -> int:
                    help="No reentrena: rehace el estudio de índices con los modelos guardados")
     p.add_argument("--solo-direccion", action="store_true",
                    help="Reentrena solo la IA de dirección (usa los modelos de rangos guardados)")
+    p.add_argument("--experimento-amplio", action="store_true",
+                   help="Entrena también la variante con dólar, petróleo, oro y amplitud mundial (descartada)")
     args = p.parse_args(argv)
 
     t0 = time.time()
@@ -337,16 +343,16 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  {len(datos)} con datos: {', '.join(datos)}")
     mercado = datos[MERCADO]["Close"] if MERCADO in datos else None
     from . import direccion
-    from .ia import TICKERS_MACRO, datos_macro
+    from .ia import descargar_macro
 
-    macro = datos_macro(descargar_varios(list(TICKERS_MACRO.values()), args.inicio, date.today()))
+    macro = descargar_macro(args.inicio, date.today(), {t: d for t, d in datos.items() if t in INDICES})
 
     conjuntos, direcciones = {}, {}
     for h in args.horizontes:
         if args.solo_estudio or args.solo_direccion:
             conjuntos[h] = cargar(h, args.directorio)
             if args.solo_direccion:
-                direcciones[h] = _entrenar_direccion(datos, mercado, h, args.directorio, macro)
+                direcciones[h] = _entrenar_direccion(datos, mercado, h, args.directorio, macro, args.experimento_amplio)
             else:
                 direcciones[h] = {v: direccion.cargar(h, args.directorio, v) for v in direccion.VARIANTES}
             continue
@@ -357,7 +363,7 @@ def main(argv: list[str] | None = None) -> int:
         resumen = ", ".join(f"{float(c):.0%}→{v['cobertura']:.1%}" for c, v in ev.items())
         print(f"  Guardado {destino.name} ({destino.stat().st_size / 1e6:.1f} MB). "
               f"Cobertura fuera de muestra en la cesta: {resumen}")
-        direcciones[h] = _entrenar_direccion(datos, mercado, h, args.directorio, macro)
+        direcciones[h] = _entrenar_direccion(datos, mercado, h, args.directorio, macro, args.experimento_amplio)
 
     if set(args.cesta) <= set(INDICES):
         print("Estudio de índices…")

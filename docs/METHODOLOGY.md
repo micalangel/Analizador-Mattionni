@@ -221,6 +221,14 @@ histórico de movimientos e IA global. Sobre las fechas comunes:
   (10 años − 3 meses), su cambio en 60 días y el cambio del tipo a 10 años en 1 año.
 - Resultado fuera de muestra (37 índices): acierto de dirección 57,9 % / 63,3 % / 67,8 % a 1 mes / 6 meses /
   1 año, frente a 58,8 % / 65,2 % / 67,5 % sin estos datos. No se elige a mano: compite por activo.
+- Comprobado y descartado (octubre de 2026): **más información macro**. Variante «ia_amplia» con cambio a
+  60 días y 1 año del dólar (`DX-Y.NYB`), petróleo (`CL=F`) y oro (`GC=F`), y la amplitud de las bolsas
+  mundiales (% de los 37 índices sobre su media de 200 sesiones y su rentabilidad media a 60 sesiones).
+  Fuera de muestra empeoró en todos los plazos (mejora Brier −0,1 % a −2,5 % frente a la frecuencia
+  histórica, peor que «ia» e «ia_macro»), así que no se usa. Se puede repetir con
+  `python -m analizador.entrenamiento --experimento-amplio`.
+- Añadido: tendencia de 5 años (rentabilidad a 1.260 sesiones y caída desde el máximo de 5 años). Efecto
+  neutro a corto plazo y ligera mejora a 1 año (mejora Brier de la «ia» +1,15 % → +1,89 %).
 - Comprobado y descartado: «opinar solo cuando la IA está segura». Con probabilidades ≥ 75 % a 1 año, el
   mercado subió el 63 % de las veces (menos que la media del 68 %): la IA es demasiado optimista tras rachas buenas.
 
