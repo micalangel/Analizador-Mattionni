@@ -1,0 +1,25 @@
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Caché de datos y resultados
+data_cache/
+outputs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+
+# Sistema
+.DS_Store
+
+# Streamlit
+.streamlit/secrets.toml
+.claude/
+modelos/*.joblib
+modelos/mi_lista.json
