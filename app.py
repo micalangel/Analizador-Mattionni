@@ -16,12 +16,17 @@ sys.path.insert(0, str(RAIZ))
 
 def _recargar_si_hay_codigo_nuevo() -> None:
     """Streamlit Cloud baja los cambios de GitHub pero sigue usando los módulos de ``src/`` ya cargados en
-    memoria. Si algún archivo es más nuevo que la última carga (o es la primera vez en este proceso), se
+    memoria. Si el contenido de algún archivo ha cambiado desde la última carga (o es la primera vez), se
     descartan esos módulos y las cachés para que todo se importe de nuevo con el código actual."""
-    archivos = list((RAIZ / "src" / "analizador").glob("*.py")) + list((RAIZ / "vistas").glob("*.py"))
-    ultimo = max(f.stat().st_mtime for f in archivos)
+    import zlib
+
+    archivos = sorted((RAIZ / "src" / "analizador").glob("*.py")) + sorted((RAIZ / "vistas").glob("*.py"))
+    # Huella del contenido (no de las fechas: al actualizar en la nube no siempre cambian).
+    ultimo = 0
+    for f in archivos:
+        ultimo = zlib.crc32(f.read_bytes(), ultimo)
     previo = getattr(sys, "_mattionni_codigo", None)
-    if previo is None or ultimo > previo:
+    if previo is None or ultimo != previo:
         viejos = [m for m in sys.modules if m in ("analizador", "vistas") or m.startswith(("analizador.", "vistas."))]
         for nombre in viejos:
             del sys.modules[nombre]

@@ -31,7 +31,8 @@ for _t, (_pais, _nombre, _) in INDICES.items():
 
 
 @st.cache_data(show_spinner="Consultando los datos de la empresa…", ttl=60 * 60 * 6)
-def datos_ficha(ticker: str) -> fc.Ficha:
+def datos_ficha(ticker: str, version: int = 2) -> fc.Ficha:
+    # ``version``: cambiarla cuando cambie la clase Ficha, para no reutilizar fichas guardadas con el formato viejo.
     return fc.descargar(ticker)
 
 
@@ -112,7 +113,10 @@ precios = cargar((ticker,), INICIO, hoy).get(ticker)
 if precios is None or precios.empty:
     st.error(f"No se han encontrado datos de «{eleccion}».")
     st.stop()
-f = datos_ficha(ticker)
+f = datos_ficha(ticker, 2)
+trimestral_f = getattr(f, "trimestral", None)
+if not isinstance(trimestral_f, pd.DataFrame):
+    trimestral_f = pd.DataFrame()
 cierre = float(precios["Close"].iloc[-1])
 cambio = precios["Close"].pct_change().iloc[-1]
 
@@ -356,8 +360,8 @@ with pestanas[2]:
 
 with pestanas[3]:
     fcf_anual, nota_fcf = f.v("freeCashflow"), ""
-    if fcf_anual is None and not f.trimestral.empty and "Flujo de caja libre" in f.trimestral:
-        fcf_anual = ultimo_anio(f.trimestral["Flujo de caja libre"])
+    if fcf_anual is None and not trimestral_f.empty and "Flujo de caja libre" in trimestral_f:
+        fcf_anual = ultimo_anio(trimestral_f["Flujo de caja libre"])
         nota_fcf = " Suma de los 4 últimos trimestres." if pd.notna(fcf_anual) else ""
     if (fcf_anual is None or pd.isna(fcf_anual)) and not f.anual.empty and "Flujo de caja libre" in f.anual:
         serie_fcf = f.anual["Flujo de caja libre"].dropna()
@@ -387,8 +391,8 @@ with pestanas[3]:
 
 with pestanas[4]:
     crec_ventas, crec_beneficio = f.v("revenueGrowth"), f.v("earningsGrowth")
-    if not f.trimestral.empty and "Ingresos" in f.trimestral:
-        tabla_crec = margenes_y_crecimiento(f.trimestral.dropna(subset=["Ingresos"]), 4)
+    if not trimestral_f.empty and "Ingresos" in trimestral_f:
+        tabla_crec = margenes_y_crecimiento(trimestral_f.dropna(subset=["Ingresos"]), 4)
 
         def ultimo(columna):
             serie = tabla_crec[columna].dropna()
