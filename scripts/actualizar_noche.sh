@@ -26,8 +26,12 @@ if [[ "${1:-}" == "--prueba" ]]; then
   exit 0
 fi
 
-# Traer primero los cambios de los demás (amigos que editan la web).
-git pull --rebase --autostash -q origin main || echo "Aviso: no se pudo traer lo último de GitHub."
+# Traer primero los cambios de los demás (amigos que editan la web) y volver a arrancar con la
+# versión recién traída de este mismo script (bash lee el archivo mientras lo ejecuta).
+if [[ "${MATTIONNI_ACTUALIZADO:-}" != "1" ]]; then
+  git pull --rebase --autostash -q origin main || echo "Aviso: no se pudo traer lo último de GitHub."
+  MATTIONNI_ACTUALIZADO=1 exec /bin/bash "$0" "$@"
+fi
 
 if [[ "$(date +%u)" == "7" || "${1:-}" == "--entrenar" ]]; then
   echo "-- Reentrenando la IA…"
