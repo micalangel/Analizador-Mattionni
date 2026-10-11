@@ -50,7 +50,8 @@ def cargar_modelos() -> tuple[dict, dict]:
     return rangos, direcciones
 
 
-@st.cache_data(show_spinner="Calculando y comprobando con el histórico…", ttl=60 * 60 * 6)
+@st.cache_data(show_spinner="Calculando y comprobando con todo su histórico… La primera vez que alguien consulta un "
+                             "activo puede tardar hasta un minuto; después sale al momento.", ttl=60 * 60 * 6)
 def calcular(ticker: str, confianza: float, hoy: date):
     datos = cargar((ticker,), INICIO_HISTORIA, hoy).get(ticker)
     if datos is None or datos.empty:
