@@ -133,3 +133,27 @@ def test_modulo_ejecutable_delega_en_el_paquete():
     fuente = inspect.getsource(ent)
     assert "from analizador.entrenamiento import main as _main" in fuente
     assert ent.ConjuntoIA.__module__ == "analizador.entrenamiento"
+
+
+def test_camino_probable_coherente_con_rango_y_probabilidad():
+    from statistics import NormalDist
+
+    import numpy as np
+
+    from analizador.proyeccion import camino_probable
+
+    plazos = [(5, 95.0, 106.0, 0.55), (21, 90.0, 112.0, 0.58), (252, 75.0, 150.0, 0.68)]
+    c = camino_probable(100.0, plazos, 0.8, ejemplos=3, semilla=1)
+    assert len(c) == 253 and abs(c["central"].iloc[0] - 100) < 1e-9
+    assert (c["inferior"] <= c["central"] + 1e-9).all() and (c["central"] <= c["superior"] + 1e-9).all()
+    for h, inf, sup, p in plazos:
+        fila = c.iloc[h]
+        assert abs(fila["inferior"] - inf) < 1e-6 and abs(fila["superior"] - sup) < 1e-6
+        # Con la anchura del rango, la probabilidad de acabar por encima de hoy es la estimada.
+        sigma = (np.log(sup) - np.log(inf)) / (2 * NormalDist().inv_cdf(0.9))
+        assert abs(NormalDist().cdf((np.log(fila["central"]) - np.log(100)) / sigma) - p) < 1e-6
+    assert {"ejemplo_1", "ejemplo_2", "ejemplo_3"} <= set(c.columns)
+    assert np.allclose(c[["ejemplo_1", "ejemplo_2", "ejemplo_3"]].iloc[0], 100)
+    # Sin probabilidad, el centro del rango (media geométrica).
+    c2 = camino_probable(100.0, [(10, 90.0, 110.0, None)], ejemplos=0)
+    assert abs(c2["central"].iloc[-1] - np.sqrt(90 * 110)) < 1e-9

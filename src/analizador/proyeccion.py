@@ -204,3 +204,59 @@ def tabla_resumen(proyecciones: dict[str, ProyeccionHorizonte]) -> pd.DataFrame:
             "Método": NOMBRES_CORTOS.get(p.metodo, p.metodo or "—"),
         })
     return pd.DataFrame(filas).set_index("Plazo")
+
+
+# --- Camino probable ---------------------------------------------------------------------
+
+def camino_probable(precio: float, plazos: list[tuple[int, float, float, float | None]], confianza: float = 0.8,
+                    ejemplos: int = 3, semilla: int = 0) -> pd.DataFrame:
+    """Prolonga el gráfico: camino central, cono de rango y caminos de ejemplo, sesión a sesión.
+
+    ``plazos``: [(sesiones, inferior, superior, prob_subir o None), ...] del rango calibrado de cada plazo.
+
+    * **Cono**: el rango de cada plazo, interpolado en escala logarítmica entre plazos (en t = 0 vale el precio).
+    * **Camino central**: a cada plazo, el precio que deja un 50 % de probabilidad por encima y por debajo.
+      Suponiendo una distribución lognormal con la anchura del rango, se coloca de modo que la probabilidad
+      de acabar por encima del precio de hoy sea la ``prob_subir`` estimada (si no la hay, el centro del rango).
+      No es una predicción del precio exacto: el precio real se moverá en zigzag alrededor.
+    * **Caminos de ejemplo**: recorridos simulados (paseo aleatorio con la volatilidad del rango, centrado en
+      el camino central) para mostrar cómo suele moverse de verdad un precio. Son ilustrativos.
+    """
+    from statistics import NormalDist
+
+    normal = NormalDist()
+    z = normal.inv_cdf((1 + confianza) / 2)
+    lp = np.log(precio)
+    nudos_t, nudos_inf, nudos_sup, nudos_mu, nudos_sigma = [0], [lp], [lp], [lp], [0.0]
+    for h, inf, sup, prob in sorted(plazos):
+        if not (inf and sup) or inf <= 0 or sup <= inf:
+            continue
+        li, ls = np.log(inf), np.log(sup)
+        sigma = (ls - li) / (2 * z)
+        if prob is not None and np.isfinite(prob):
+            p = float(np.clip(prob, 0.02, 0.98))
+            mu = lp + sigma * normal.inv_cdf(p)
+            mu = float(np.clip(mu, li, ls))  # nunca fuera del rango calibrado
+        else:
+            mu = (li + ls) / 2
+        nudos_t.append(h)
+        nudos_inf.append(li)
+        nudos_sup.append(ls)
+        nudos_mu.append(mu)
+        nudos_sigma.append(sigma)
+    t = np.arange(0, nudos_t[-1] + 1)
+    salida = pd.DataFrame({"sesion": t,
+                           "inferior": np.exp(np.interp(t, nudos_t, nudos_inf)),
+                           "superior": np.exp(np.interp(t, nudos_t, nudos_sup)),
+                           "central": np.exp(np.interp(t, nudos_t, nudos_mu))})
+    if len(t) > 1 and ejemplos:
+        # Volatilidad diaria implícita en cada tramo (la varianza crece con el tiempo).
+        varianza = np.interp(t, nudos_t, np.square(nudos_sigma))
+        paso = np.sqrt(np.clip(np.diff(varianza, prepend=0.0), 0, None))
+        rng = np.random.default_rng(semilla)
+        mu_t = np.interp(t, nudos_t, nudos_mu)
+        for k in range(ejemplos):
+            ruido = np.cumsum(rng.standard_normal(len(t)) * paso)
+            ruido[0] = 0.0
+            salida[f"ejemplo_{k + 1}"] = np.exp(mu_t + ruido)
+    return salida

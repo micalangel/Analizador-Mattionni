@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import zlib
 from datetime import date
 
 import pandas as pd
@@ -20,7 +21,7 @@ from analizador.resultados import margenes_y_crecimiento, obtener_resultados
 from analizador.catalogo import ACTIVOS, buscar, buscar_en_yahoo, descripcion, nombre, opciones_ordenadas
 from analizador.forecast import HORIZONTES
 from analizador.indices import INDICES, MERCADO
-from analizador.proyeccion import DESCRIPCIONES, ESTADOS, NOMBRES_CORTOS, proyectar
+from analizador.proyeccion import DESCRIPCIONES, ESTADOS, NOMBRES_CORTOS, camino_probable, proyectar
 from vistas.comun import (COLORES, cargar, cargar_macro, estilo, lista_cargar, lista_guardar, nota, numero,
                           per_referencia, seccion, tarjeta)
 
@@ -29,8 +30,9 @@ REFERENCIA_NUEVOS = "^IXIC"  # para activos sin historia propia suficiente
 INICIO_HISTORIA = date(1990, 1, 1)
 CONFIANZAS = {"50 %": 0.5, "80 %": 0.8, "95 %": 0.95}
 # Periodo inicial del gráfico según el plazo, y opciones para ver más o menos historia.
-HISTORIA_GRAFICO = {5: "6 meses", 10: "6 meses", 21: "1 año", 126: "5 años", 252: "5 años"}
-PERIODOS_GRAFICO = {"6 meses": pd.DateOffset(months=6), "1 año": pd.DateOffset(years=1),
+HISTORIA_GRAFICO = {5: "3 meses", 10: "3 meses", 21: "6 meses", 126: "1 año", 252: "2 años"}
+PERIODOS_GRAFICO = {"3 meses": pd.DateOffset(months=3), "6 meses": pd.DateOffset(months=6),
+                    "1 año": pd.DateOffset(years=1), "2 años": pd.DateOffset(years=2),
                     "5 años": pd.DateOffset(years=5), "10 años": pd.DateOffset(years=10), "Todo": None}
 VERDE, ROJO = "#0E9F6E", "#DC2626"
 POPULARES = ["^GSPC", "^IBEX", "AAPL", "NVDA", "SAN.MC", "ITX.MC", "GC=F", "BTC-USD", "EURUSD=X", "SPCX"]
@@ -305,39 +307,54 @@ if estado_hoy and (estado_hoy["panico"] or estado_hoy["caida_fuerte"]):
 
 if r is not None:
     with seccion("grafico", "blanco"):
-        st.markdown(f"<div class='titulo-bloque'>Precio hasta hoy y rango probable hasta {plazo}</div>",
+        st.markdown(f"<div class='titulo-bloque'>Precio hasta hoy y camino probable hasta {plazo}</div>",
                     unsafe_allow_html=True)
-        periodo = st.segmented_control("Periodo del gráfico", list(PERIODOS_GRAFICO),
-                                       default=HISTORIA_GRAFICO.get(p.horizonte, "1 año"),
-                                       key=f"periodo_grafico_{p.horizonte}", label_visibility="collapsed")
+        c_per, c_ej = st.columns([3, 1.3], vertical_alignment="center")
+        periodo = c_per.segmented_control("Periodo del gráfico", list(PERIODOS_GRAFICO),
+                                          default=HISTORIA_GRAFICO.get(p.horizonte, "1 año"),
+                                          key=f"periodo_grafico_{p.horizonte}", label_visibility="collapsed")
+        ver_ejemplos = c_ej.toggle("Caminos de ejemplo", value=True,
+                                   help="Recorridos simulados para ver cómo suele moverse de verdad un precio.")
         desplazamiento = PERIODOS_GRAFICO.get(periodo or "1 año")
         historia = datos["Close"] if desplazamiento is None else datos["Close"].loc[ultima - desplazamiento:]
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=historia.index, y=historia, name="Cierre", line=dict(color=COLORES[1], width=2),
+        fig.add_trace(go.Scatter(x=historia.index, y=historia, name="Precio real", line=dict(color=COLORES[1], width=2),
                                  hovertemplate="%{x|%d/%m/%Y}: %{y:,.2f}<extra></extra>"))
-        puntos = [(ultima, r["precio_ultimo"], r["precio_ultimo"])]
-        for ph in proyecciones.values():
-            if ph.rango and ph.horizonte <= p.horizonte:
-                puntos.append((fecha_objetivo(ultima, ph.horizonte), ph.rango["inferior"], ph.rango["superior"]))
-        puntos.sort()
-        xs = [x for x, _, _ in puntos]
-        fig.add_trace(go.Scatter(x=xs, y=[s_ for _, _, s_ in puntos], mode="lines",
-                                 line=dict(width=1, color=COLORES[0]),
-                                 hovertemplate="%{x|%d/%m/%Y}: máx. %{y:,.2f}<extra></extra>"))
-        fig.add_trace(go.Scatter(x=xs, y=[i for _, i, _ in puntos], mode="lines", line=dict(width=1, color=COLORES[0]),
-                                 fill="tonexty", fillcolor="rgba(37,99,235,0.12)",
+        plazos_camino = [(ph.horizonte, ph.rango["inferior"], ph.rango["superior"],
+                          ph.direccion.probabilidad if ph.direccion else None)
+                         for ph in proyecciones.values() if ph.rango and ph.horizonte <= p.horizonte]
+        camino = camino_probable(r["precio_ultimo"], plazos_camino, confianza,
+                                 ejemplos=3 if ver_ejemplos else 0, semilla=zlib.crc32(ticker.encode()))
+        fechas = pd.bdate_range(ultima, periods=len(camino))
+        fig.add_trace(go.Scatter(x=fechas, y=camino["superior"], mode="lines", line=dict(width=1, color=COLORES[0]),
+                                 showlegend=False, hovertemplate="%{x|%d/%m/%Y}: máx. %{y:,.2f}<extra></extra>"))
+        fig.add_trace(go.Scatter(x=fechas, y=camino["inferior"], mode="lines", line=dict(width=1, color=COLORES[0]),
+                                 fill="tonexty", fillcolor="rgba(37,99,235,0.10)", name="Rango probable",
                                  hovertemplate="%{x|%d/%m/%Y}: mín. %{y:,.2f}<extra></extra>"))
+        for k, col in enumerate([c for c in camino.columns if c.startswith("ejemplo_")]):
+            fig.add_trace(go.Scatter(x=fechas, y=camino[col], mode="lines", line=dict(width=1, color="#9CA3AF"),
+                                     opacity=0.8, name="Caminos de ejemplo (simulados)", legendgroup="ejemplos",
+                                     showlegend=k == 0, hoverinfo="skip"))
+        fig.add_trace(go.Scatter(x=fechas, y=camino["central"], mode="lines", name="Camino central",
+                                 line=dict(color=COLORES[0], width=2.5, dash="dash"),
+                                 hovertemplate="%{x|%d/%m/%Y}: camino central %{y:,.2f}<extra></extra>"))
+        fig.add_trace(go.Scatter(x=[destino], y=[camino["central"].iloc[-1]], mode="markers+text", showlegend=False,
+                                 marker=dict(size=8, color=COLORES[0]), text=[numero(camino["central"].iloc[-1])],
+                                 textposition="middle right", cliponaxis=False, hoverinfo="skip"))
         fig.add_trace(go.Scatter(x=[destino, destino], y=[r["inferior"], r["superior"]], mode="lines+markers+text",
-                                 line=dict(color=COLORES[0], width=3), marker=dict(size=8),
+                                 line=dict(color=COLORES[0], width=3), marker=dict(size=8), showlegend=False,
                                  text=[numero(r["inferior"]), numero(r["superior"])], textposition="middle right",
                                  cliponaxis=False, hoverinfo="skip"))
         fig.add_hline(y=r["precio_ultimo"], line=dict(color="#9CA3AF", width=1, dash="dot"))
-        fig.update_layout(hovermode="closest", showlegend=False)
-        margen = min((destino - historia.index[0]) * 0.12, pd.Timedelta(days=150))
+        fig.update_layout(hovermode="closest", showlegend=True, legend=dict(orientation="h", y=-0.12))
+        margen = min((destino - historia.index[0]) * 0.10, pd.Timedelta(days=150))
         fig.update_xaxes(range=[historia.index[0], destino + margen])
         st.plotly_chart(estilo(fig, 380).update_layout(margin=dict(r=80)), width="stretch")
-        st.caption("Línea de puntos = precio de hoy. Zona azul = rango probable en cada plazo intermedio. Puedes ampliar "
-                   "una zona arrastrando con el ratón y volver con doble clic.")
+        st.caption("Camino central (discontinua): a cada fecha, el precio con la mitad de probabilidad por encima y la "
+                   "mitad por debajo, coherente con la probabilidad de subir. No es el precio que va a tener: el precio "
+                   "real se mueve en zigzag, como los caminos de ejemplo en gris (simulados), y lo normal es que acabe en "
+                   "cualquier punto de la zona azul. Línea de puntos = precio de hoy. Puedes ampliar arrastrando con el "
+                   "ratón y volver con doble clic.")
 
 # --- Todos los plazos ------------------------------------------------------------------
 
