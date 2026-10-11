@@ -28,6 +28,7 @@ class Ficha:
     dividendos: pd.Series = field(default_factory=lambda: pd.Series(dtype=float))      # pagos individuales
     recomendaciones: pd.DataFrame = field(default_factory=pd.DataFrame)
     anual: pd.DataFrame = field(default_factory=pd.DataFrame)                          # estados anuales
+    trimestral: pd.DataFrame = field(default_factory=pd.DataFrame)                     # estados trimestrales
 
     def v(self, clave: str):
         x = self.info.get(clave)
@@ -101,5 +102,7 @@ def descargar(ticker: str) -> Ficha:
                   seguro(lambda: t.recommendations, pd.DataFrame()))
     from .resultados import obtener_resultados
 
-    ficha.anual = seguro(lambda: obtener_resultados(ticker).anual, pd.DataFrame())
+    res = seguro(lambda: obtener_resultados(ticker), None)
+    if res is not None:
+        ficha.anual, ficha.trimestral = res.anual, res.trimestral
     return ficha

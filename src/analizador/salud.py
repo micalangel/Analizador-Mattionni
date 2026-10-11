@@ -36,15 +36,60 @@ def _semaforo(valor, bien, mal, mayor_es_mejor=True) -> str:
     return "bien" if valor <= bien else "mal" if valor > mal else "regular"
 
 
+def ultimo_anio(serie: pd.Series) -> float:
+    """Suma de los 4 últimos trimestres, solo si son seguidos (sin huecos); si no, NaN."""
+    if serie is None or serie.empty:
+        return np.nan
+    ultimos = serie.dropna().iloc[-4:]
+    if len(ultimos) < 4:
+        return np.nan
+    duracion = (pd.Timestamp(ultimos.index[-1]) - pd.Timestamp(ultimos.index[0])).days
+    return float(ultimos.sum()) if duracion <= 300 else np.nan
+
+
+def completar(fund: pd.Series, trimestral: pd.DataFrame, anual: pd.DataFrame | None = None) -> pd.Series:
+    """Rellena con las cuentas lo que Yahoo no da resumido (típico en empresas recién salidas a bolsa).
+
+    * Rentabilidad del flujo de caja: flujo de caja libre de los 4 últimos trimestres seguidos (o del último
+      año completo) / capitalización.
+    * Beneficio de 12 meses: suma de los 4 últimos trimestres seguidos, si los hay.
+    """
+    fund = fund.copy()
+    capitalizacion = fund.get("Capitalización")
+    if pd.isna(fund.get("Rentabilidad FCF")) and pd.notna(capitalizacion) and capitalizacion > 0:
+        fcf = ultimo_anio(trimestral["Flujo de caja libre"]) if "Flujo de caja libre" in trimestral else np.nan
+        if pd.isna(fcf) and anual is not None and not anual.empty and "Flujo de caja libre" in anual:
+            serie = anual["Flujo de caja libre"].dropna()
+            fcf = float(serie.iloc[-1]) if len(serie) else np.nan
+        if pd.notna(fcf):
+            fund["Rentabilidad FCF"] = fcf / capitalizacion
+    beneficio = ultimo_anio(trimestral["Beneficio neto"]) if "Beneficio neto" in trimestral else np.nan
+    if pd.notna(beneficio):
+        fund["Beneficio 12m"] = beneficio
+    return fund
+
+
+def _texto_per(fund: pd.Series) -> str:
+    per, esperado = fund.get("PER"), fund.get("PER esperado")
+    pierde = (pd.notna(fund.get("BPA 12m")) and fund.get("BPA 12m") < 0) or \
+             (pd.notna(fund.get("Beneficio 12m")) and fund.get("Beneficio 12m") < 0)
+    extra = f" (esperado: {esperado:.1f})" if pd.notna(esperado) and esperado > 0 else ""
+    if pd.notna(per):
+        return _es(f"{per:.1f} veces{extra}")
+    if pierde:
+        return _es("No tiene: pierde dinero" + (f" · esperado: {esperado:.1f} veces" if extra else ""))
+    return _es(f"— · esperado: {esperado:.1f} veces") if extra else "—"
+
+
 def indicadores(fund: pd.Series, trimestral: pd.DataFrame, crecimiento: pd.DataFrame,
                 sector: str = "—") -> list[Indicador]:
     """Construye los indicadores a partir de los ratios (``fundamentals``) y los estados (``resultados``)."""
     salida = []
-    per = fund.get("PER")
     salida.append(Indicador(
-        "PER (precio / beneficio)", "—" if pd.isna(per) else _es(f"{per:.1f} veces"), "info",
+        "PER (precio / beneficio)", _texto_per(fund), "info",
         "Cuántos años de beneficio actual paga el mercado por la empresa. La media histórica del S&P 500 ronda "
-        "16; muy alto = se esperan grandes crecimientos, muy bajo = el mercado desconfía o está barata."))
+        "16; muy alto = se esperan grandes crecimientos, muy bajo = el mercado desconfía o está barata. Si la "
+        "empresa pierde dinero no hay PER; el «esperado» usa el beneficio que prevén los analistas para el próximo año."))
 
     margen = fund.get("Margen de beneficio")
     salida.append(Indicador(
@@ -73,10 +118,9 @@ def indicadores(fund: pd.Series, trimestral: pd.DataFrame, crecimiento: pd.DataF
         "Crecimiento de las ventas", "—" if pd.isna(crec) else _es(f"{crec:+.1%}"), _semaforo(crec, 0.10, 0.0),
         "Ventas del último trimestre frente al mismo trimestre del año anterior. Más del 10 % es crecer mucho."))
 
-    beneficio = np.nan
-    if not trimestral.empty and "Beneficio neto" in trimestral:
-        ultimos = trimestral["Beneficio neto"].dropna().iloc[-4:]
-        beneficio = float(ultimos.sum()) if len(ultimos) == 4 else np.nan
+    beneficio = ultimo_anio(trimestral["Beneficio neto"]) if "Beneficio neto" in trimestral else np.nan
+    if pd.isna(beneficio):
+        beneficio = fund.get("Beneficio 12m", np.nan)
     salida.append(Indicador(
         "Beneficio del último año", "—" if pd.isna(beneficio) else _millones(beneficio),
         "info" if pd.isna(beneficio) else ("bien" if beneficio > 0 else "mal"),
@@ -113,13 +157,13 @@ def valores_numericos(fund: pd.Series, trimestral: pd.DataFrame, crecimiento: pd
     if not crecimiento.empty and "Crec. ingresos (interanual)" in crecimiento:
         serie = crecimiento["Crec. ingresos (interanual)"].dropna()
         crec = float(serie.iloc[-1]) if len(serie) else np.nan
-    beneficio = np.nan
-    if not trimestral.empty and "Beneficio neto" in trimestral:
-        ultimos = trimestral["Beneficio neto"].dropna().iloc[-4:]
-        beneficio = float(ultimos.sum()) if len(ultimos) == 4 else np.nan
+    beneficio = ultimo_anio(trimestral["Beneficio neto"]) if "Beneficio neto" in trimestral else np.nan
+    if pd.isna(beneficio):
+        beneficio = fund.get("Beneficio 12m", np.nan)
     return {"per": fund.get("PER"), "precio_valor_contable": fund.get("Precio/Valor contable"),
             "margen": fund.get("Margen de beneficio"), "deuda_patrimonio": fund.get("Deuda/Patrimonio"),
             "rentabilidad_fcf": fund.get("Rentabilidad FCF"), "crecimiento_ventas": crec,
+            "per_esperado": fund.get("PER esperado"),
             "beneficio_anual": beneficio, "moneda": fund.get("Moneda")}
 
 
@@ -132,6 +176,7 @@ def estudiar_empresa(ticker: str, sector: str = "—") -> dict:
     res = obtener_resultados(ticker)
     trimestral = res.trimestral.dropna(subset=["Ingresos"])
     crecimiento = margenes_y_crecimiento(trimestral, 4) if not trimestral.empty else trimestral
+    fund = completar(fund, trimestral, res.anual)
     lista = indicadores(fund, trimestral, crecimiento, sector)
     frase, estado = resumen(lista)
     return {"ticker": ticker, **valores_numericos(fund, trimestral, crecimiento),

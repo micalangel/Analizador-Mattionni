@@ -20,7 +20,8 @@ AVISO_FUNDAMENTALES = (
 )
 
 COLUMNAS = ["Nombre", "PER", "Precio/Valor contable", "Deuda/Patrimonio",
-            "Margen de beneficio", "Rentabilidad FCF", "Moneda"]
+            "Margen de beneficio", "Rentabilidad FCF", "Moneda",
+            "PER esperado", "BPA 12m", "Beneficio 12m", "Capitalización"]
 
 ObtenerInfo = Callable[[str], dict]
 
@@ -53,6 +54,11 @@ def ratios_desde_info(info: dict) -> dict:
         "Margen de beneficio": _numero(info.get("profitMargins")),
         "Rentabilidad FCF": fcf / capitalizacion if capitalizacion and capitalizacion > 0 else np.nan,
         "Moneda": info.get("financialCurrency") or info.get("currency") or "",
+        # Con pérdidas no hay PER; el esperado usa el beneficio que prevén los analistas.
+        "PER esperado": _numero(info.get("forwardPE")),
+        "BPA 12m": _numero(info.get("trailingEps")),
+        "Beneficio 12m": _numero(info.get("netIncomeToCommon")),
+        "Capitalización": capitalizacion,
     }
 
 

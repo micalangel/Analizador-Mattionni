@@ -101,6 +101,7 @@ def ficha_salud(ticker: str):
     res = obtener_resultados(ticker)
     trimestral = res.trimestral.dropna(subset=["Ingresos"])
     crecimiento = margenes_y_crecimiento(trimestral, 4) if not trimestral.empty else trimestral
+    fund = sl.completar(fund, trimestral, res.anual)
     return sl.indicadores(fund, trimestral, crecimiento, sector_de(ticker)), trimestral
 
 

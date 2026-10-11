@@ -18,8 +18,9 @@ from analizador.catalogo import ACTIVOS, buscar, descripcion, nombre, opciones_o
 from analizador.catalogo import pais as pais_de
 from analizador.catalogo import sector as sector_de
 from analizador.indices import INDICES, MERCADO
-from analizador.resultados import estudio_publicaciones, obtener_resultados, proxima_publicacion, resumen_publicaciones
-from analizador.salud import comparar_per
+from analizador.resultados import (estudio_publicaciones, margenes_y_crecimiento, obtener_resultados, proxima_publicacion,
+                                   resumen_publicaciones)
+from analizador.salud import comparar_per, ultimo_anio
 from vistas.comun import COLORES, cargar, estilo, nota, numero, per_referencia, seccion, tarjeta
 
 INICIO = date(2000, 1, 1)
@@ -318,10 +319,16 @@ with pestanas[2]:
              f"{cifra(per.p10, '{:.0f}')} y {cifra(per.p90, '{:.0f}')}). "
              f"<span style='color:{color};font-weight:600'>{etiqueta} ({per.diferencia:+.0%})</span>.")
     rel_sector, dif_sector = comparar_per(per_actual, medianas.get(sector_cat))
+    bpa = f.v("trailingEps")
+    pierde = per_actual is None and isinstance(bpa, float) and bpa < 0
     cajas([
-        ("PER actual", cifra(per_actual, "{:.1f}"), "Precio / beneficio de los últimos 12 meses."),
+        ("PER actual", "No tiene" if pierde else cifra(per_actual, "{:.1f}"),
+         f"Pierde dinero (beneficio por acción de {cifra(bpa)} {f.moneda} en 12 meses), así que no hay PER. Mira el "
+         f"PER esperado." if pierde else "Precio / beneficio de los últimos 12 meses."),
         ("Su PER medio (10 años)", cifra(per.mediana if per else None, "{:.1f}"),
-         "Con qué PER suele cotizar esta empresa." if per else "No hay datos fiables para calcularlo."),
+         "Con qué PER suele cotizar esta empresa." if per else
+         (f"Cotiza en bolsa desde el {precios.index[0]:%d/%m/%Y}: todavía no tiene historia suficiente."
+          if (precios.index[-1] - precios.index[0]).days < 730 else "No hay datos fiables para calcularlo.")),
         ("PER medio de su sector", cifra(medianas.get(sector_cat), "{:.1f}"),
          f"{rel_sector}{f' ({dif_sector:+.0%})' if dif_sector is not None else ''}." if rel_sector != "—"
          else "Mediana de las empresas de su sector en esta web."),
@@ -348,6 +355,16 @@ with pestanas[2]:
 # --- Rentabilidad y deuda ---------------------------------------------------------------------
 
 with pestanas[3]:
+    fcf_anual, nota_fcf = f.v("freeCashflow"), ""
+    if fcf_anual is None and not f.trimestral.empty and "Flujo de caja libre" in f.trimestral:
+        fcf_anual = ultimo_anio(f.trimestral["Flujo de caja libre"])
+        nota_fcf = " Suma de los 4 últimos trimestres." if pd.notna(fcf_anual) else ""
+    if (fcf_anual is None or pd.isna(fcf_anual)) and not f.anual.empty and "Flujo de caja libre" in f.anual:
+        serie_fcf = f.anual["Flujo de caja libre"].dropna()
+        if len(serie_fcf):
+            fcf_anual, nota_fcf = float(serie_fcf.iloc[-1]), f" Dato del año {serie_fcf.index[-1].year}."
+    if fcf_anual is not None and pd.notna(fcf_anual) and fcf_anual < 0:
+        nota_fcf += " Negativo: quema caja."
     caja_neta = (f.v("totalCash") or 0) - (f.v("totalDebt") or 0) if f.v("totalCash") is not None else None
     cajas([
         ("Margen bruto", cifra(f.v("grossMargins"), "{:.1%}"), "Lo que queda de cada venta tras el coste de lo vendido."),
@@ -362,16 +379,28 @@ with pestanas[3]:
          "Positiva: tiene más caja que deuda. Negativa: debe más de lo que tiene en caja."),
         ("Ratio de liquidez", cifra(f.v("currentRatio")),
          "Activos a corto plazo / deudas a corto plazo. Por debajo de 1 puede tener apuros para pagar a corto."),
-        ("Flujo de caja libre anual", grande(f.v("freeCashflow")) + f" {f.moneda}",
-         "Dinero que genera de verdad cada año después de invertir."),
+        ("Flujo de caja libre anual", grande(fcf_anual) + f" {f.moneda}",
+         "Dinero que genera de verdad cada año después de invertir." + nota_fcf),
     ])
 
 # --- Crecimiento --------------------------------------------------------------------------------
 
 with pestanas[4]:
+    crec_ventas, crec_beneficio = f.v("revenueGrowth"), f.v("earningsGrowth")
+    if not f.trimestral.empty and "Ingresos" in f.trimestral:
+        tabla_crec = margenes_y_crecimiento(f.trimestral.dropna(subset=["Ingresos"]), 4)
+
+        def ultimo(columna):
+            serie = tabla_crec[columna].dropna()
+            return float(serie.iloc[-1]) if len(serie) else None
+
+        crec_ventas = crec_ventas if crec_ventas is not None else ultimo("Crec. ingresos (interanual)")
+        crec_beneficio = crec_beneficio if crec_beneficio is not None else ultimo("Crec. beneficio neto (interanual)")
     cajas([
-        ("Crecimiento de ventas", cifra(f.v("revenueGrowth"), "{:+.1%}"), "Último trimestre frente al mismo del año anterior."),
-        ("Crecimiento del beneficio", cifra(f.v("earningsGrowth"), "{:+.1%}"), "Último trimestre frente al mismo del año anterior."),
+        ("Crecimiento de ventas", cifra(crec_ventas, "{:+.1%}"), "Último trimestre frente al mismo del año anterior."),
+        ("Crecimiento del beneficio", cifra(crec_beneficio, "{:+.1%}"),
+         "Último trimestre frente al mismo del año anterior." + (" Sin dato si el año anterior tuvo pérdidas."
+                                                                 if crec_beneficio is None else "")),
     ])
     anual = f.anual.dropna(subset=["Ingresos"]) if not f.anual.empty and "Ingresos" in f.anual else pd.DataFrame()
     if not anual.empty:

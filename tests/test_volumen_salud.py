@@ -91,3 +91,33 @@ def test_comparar_per():
     assert sl.comparar_per(21, 20)[0] == "En la media de su sector"
     assert sl.comparar_per(30, 20) == ("Por encima de su sector", pytest.approx(0.5))
     assert sl.comparar_per(None, 20)[0] == "—" and sl.comparar_per(-3, 20)[0] == "—"
+
+
+def test_datos_incompletos_de_empresa_nueva():
+    import numpy as np
+    import pandas as pd
+
+    from analizador.resultados import margenes_y_crecimiento
+    from analizador.salud import _texto_per, completar, ultimo_anio
+
+    # Trimestres con hueco (faltan los dos últimos de 2025), como SpaceX tras salir a bolsa.
+    fechas = pd.to_datetime(["2025-03-31", "2025-06-30", "2026-03-31", "2026-06-30"])
+    t = pd.DataFrame({"Ingresos": [4.0, 4.0, 4.7, 7.8], "Beneficio bruto": 1.0, "Beneficio operativo": 0.0,
+                      "Beneficio neto": [-0.5, -1.0, -4.3, -0.5], "BPA diluido": -0.1,
+                      "Flujo de caja libre": [-3.4, -3.2, -9.1, -16.8], "Deuda total": np.nan,
+                      "Patrimonio neto": np.nan}, index=fechas)
+    crec = margenes_y_crecimiento(t, 4)["Crec. ingresos (interanual)"]
+    assert abs(crec.iloc[-1] - (7.8 / 4.0 - 1)) < 1e-9  # 2026-06 frente a 2025-06, aunque falten trimestres
+    assert np.isnan(ultimo_anio(t["Beneficio neto"]))      # no son 4 trimestres seguidos
+    seguidos = t.copy()
+    seguidos.index = pd.to_datetime(["2025-09-30", "2025-12-31", "2026-03-31", "2026-06-30"])
+    assert abs(ultimo_anio(seguidos["Beneficio neto"]) - (-6.3)) < 1e-9
+
+    anual = pd.DataFrame({"Flujo de caja libre": [-14.0]}, index=pd.to_datetime(["2025-12-31"]))
+    fund = pd.Series({"PER": np.nan, "PER esperado": 84.4, "BPA 12m": -1.1, "Beneficio 12m": -8.9,
+                      "Rentabilidad FCF": np.nan, "Capitalización": 2000.0})
+    completo = completar(fund, t, anual)
+    assert abs(completo["Rentabilidad FCF"] - (-14.0 / 2000)) < 1e-12
+    assert completo["Beneficio 12m"] == -8.9  # se queda el de Yahoo si los trimestres no son seguidos
+    assert _texto_per(completo).startswith("No tiene: pierde dinero") and "84,4" in _texto_per(completo)
+    assert _texto_per(pd.Series({"PER": 20.0, "PER esperado": 18.0})) == "20,0 veces (esperado: 18,0)"

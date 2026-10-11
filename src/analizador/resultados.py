@@ -119,8 +119,15 @@ def margenes_y_crecimiento(tabla: pd.DataFrame, periodos_por_anio: int) -> pd.Da
     out["Margen neto"] = tabla["Beneficio neto"] / ingresos
     out["Margen FCF"] = tabla["Flujo de caja libre"] / ingresos
 
+    fechas = pd.DatetimeIndex(tabla.index)
+
     def crecimiento(s: pd.Series) -> pd.Series:
-        previo = s.shift(periodos_por_anio)
+        """Frente al mismo periodo del año anterior, buscado por fecha (aunque falten trimestres por medio)."""
+        previo = pd.Series(np.nan, index=s.index)
+        for i, d in enumerate(fechas):
+            candidatos = np.flatnonzero((fechas >= d - pd.Timedelta(days=400)) & (fechas <= d - pd.Timedelta(days=330)))
+            if len(candidatos):
+                previo.iloc[i] = s.iloc[candidatos[-1]]
         # Con base negativa o nula el porcentaje no tiene sentido.
         return ((s - previo) / previo).where(previo > 0)
 
