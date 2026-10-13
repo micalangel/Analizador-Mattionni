@@ -1,51 +1,51 @@
 anio,variante,rent_anio,criterio
-2002,Tendencia (media de 12 meses),-0.052623701558865976,sharpe
-2003,Tendencia (media de 12 meses),0.25919554567739933,sharpe
-2004,Tendencia (media de 12 meses),0.1391252717764968,sharpe
-2005,Tendencia (media de 12 meses),0.19708427038486986,sharpe
-2006,Tendencia (media de 12 meses),0.2241424113622974,sharpe
-2007,Tendencia (media de 12 meses),0.14741285916692592,sharpe
-2008,Tendencia (media de 12 meses),-0.085399694992635,sharpe
-2009,Tendencia (media de 12 meses),0.20881070628831755,sharpe
-2010,Tendencia (media de 10 meses),0.028752522952967263,sharpe
-2011,Tendencia (media de 10 meses),-0.0541257973903958,sharpe
-2012,Tendencia (media de 10 meses),0.02520375737248637,sharpe
-2013,Tendencia (media de 10 meses),0.13063090047872095,sharpe
-2014,Tendencia (media de 10 meses),0.07014673425042361,sharpe
-2015,Tendencia (media de 10 meses),-0.03885855251957082,sharpe
-2016,Tendencia (media de 10 meses),0.03555325425826861,sharpe
-2017,Tendencia (media de 10 meses),0.15315778663323099,sharpe
-2018,Tendencia (media de 10 meses),-0.053603077786010034,sharpe
-2019,Tendencia (media de 10 meses),0.02983618348519146,sharpe
-2020,Tendencia (media de 10 meses),0.01116233117872989,sharpe
-2021,Momentum con filtro de mercado · 10 activos,0.16698623782892796,sharpe
-2022,Tendencia (media de 10 meses),-0.014066984872678878,sharpe
-2023,Tendencia (media de 10 meses),0.11470085257833107,sharpe
-2024,Tendencia (media de 10 meses),0.1367468678297239,sharpe
+2002,Momentum + IA · 4 activos,-0.07645319975517217,sharpe
+2003,Momentum + IA · 4 activos,0.36612047548494897,sharpe
+2004,Momentum con filtro de mercado · 11 activos,0.20743419256902107,sharpe
+2005,Momentum con filtro de mercado · 11 activos,0.3050698699768566,sharpe
+2006,Momentum con filtro de mercado · 11 activos,0.24666876604042764,sharpe
+2007,Tendencia (media de 12 meses),0.15651727760529388,sharpe
+2008,Momentum con filtro de mercado · 11 activos,-0.11894012295542034,sharpe
+2009,Momentum con filtro de mercado · 11 activos,0.25735205832574004,sharpe
+2010,Tendencia (media de 10 meses),0.023763209244591632,sharpe
+2011,Tendencia (media de 10 meses),-0.05430708920607641,sharpe
+2012,Momentum con filtro de mercado · 11 activos,0.023125842996522872,sharpe
+2013,Momentum con filtro de mercado · 11 activos,0.17974311734539095,sharpe
+2014,Momentum con filtro de mercado · 11 activos,0.09237307671134376,sharpe
+2015,Momentum con filtro de mercado · 11 activos,-0.01617015906562569,sharpe
+2016,Momentum con filtro de mercado · 11 activos,0.01871304618606029,sharpe
+2017,Momentum con filtro de mercado · 11 activos,0.1940204520579445,sharpe
+2018,Momentum con filtro de mercado · 11 activos,-0.06019190956576692,sharpe
+2019,Momentum con filtro de mercado · 11 activos,0.11006116481220207,sharpe
+2020,Momentum con filtro de mercado · 11 activos,0.08328192840353621,sharpe
+2021,Momentum con filtro de mercado · 11 activos,0.17226649505710245,sharpe
+2022,Momentum con filtro de mercado · 11 activos,-0.0559950614176602,sharpe
+2023,Momentum con filtro de mercado · 11 activos,0.13557886166688426,sharpe
+2024,Momentum con filtro de mercado · 7 activos,0.3424688432048668,sharpe
 2025,Momentum con filtro de mercado · 7 activos,0.19837156758099384,sharpe
-2026,Momentum con filtro de mercado · 7 activos,0.27335942318330564,sharpe
+2026,Momentum con filtro de mercado · 7 activos,0.28572795910925963,sharpe
 2002,Momentum + IA · 4 activos,-0.07645319975517217,rentabilidad
-2003,Momentum + IA · 4 activos,0.3801224834337973,rentabilidad
+2003,Momentum + IA · 4 activos,0.36612047548494897,rentabilidad
 2004,Momentum + IA · 4 activos,0.19732655564771662,rentabilidad
 2005,Momentum + IA · 4 activos,0.19449453452114063,rentabilidad
-2006,Momentum + IA · 4 activos,0.1581528280567146,rentabilidad
-2007,Momentum con freno 12 meses · 4 activos,0.3928058863096595,rentabilidad
-2008,Momentum con freno 12 meses · 4 activos,-0.29135675452534326,rentabilidad
+2006,Momentum + IA · 4 activos,0.16756134231385889,rentabilidad
+2007,Momentum + IA · 4 activos,0.10969462507703032,rentabilidad
+2008,Momentum con filtro de mercado · 4 activos,-0.09985875799427835,rentabilidad
 2009,Momentum con filtro de mercado · 4 activos,0.22469722214352927,rentabilidad
-2010,Momentum con filtro de mercado · 4 activos,0.0014618063547378046,rentabilidad
+2010,Momentum con filtro de mercado · 4 activos,0.012000331781566898,rentabilidad
 2011,Momentum con filtro de mercado · 4 activos,0.016270286541565593,rentabilidad
 2012,Momentum con filtro de mercado · 4 activos,0.030270087511192756,rentabilidad
 2013,Momentum con filtro de mercado · 4 activos,0.2655711102460847,rentabilidad
 2014,Momentum con filtro de mercado · 4 activos,0.13468517731654828,rentabilidad
 2015,Momentum con filtro de mercado · 4 activos,0.03393890837122737,rentabilidad
-2016,Momentum con filtro de mercado · 4 activos,0.037537396794334654,rentabilidad
-2017,Momentum con filtro de mercado · 4 activos,0.2662202958092408,rentabilidad
-2018,Momentum con filtro de mercado · 4 activos,-0.02889185456571075,rentabilidad
-2019,Momentum con filtro de mercado · 4 activos,0.038636585594852724,rentabilidad
+2016,Momentum con filtro de mercado · 4 activos,0.013890052955563892,rentabilidad
+2017,Momentum con filtro de mercado · 4 activos,0.2749914383356775,rentabilidad
+2018,Momentum con filtro de mercado · 4 activos,-0.06659730946523124,rentabilidad
+2019,Momentum con filtro de mercado · 4 activos,0.09360152974014224,rentabilidad
 2020,Momentum con filtro de mercado · 4 activos,0.08811538322074597,rentabilidad
 2021,Momentum con filtro de mercado · 4 activos,0.11350521122468793,rentabilidad
-2022,Momentum con filtro de mercado · 4 activos,0.025807575961090956,rentabilidad
-2023,Momentum con filtro de mercado · 4 activos,0.4400094669710335,rentabilidad
+2022,Momentum con filtro de mercado · 4 activos,0.029196767657028166,rentabilidad
+2023,Momentum con filtro de mercado · 4 activos,0.4386074171221448,rentabilidad
 2024,Momentum con freno 12 meses · 4 activos,0.51104688983808,rentabilidad
 2025,Momentum con freno 12 meses · 4 activos,0.1320629897581218,rentabilidad
-2026,Momentum con freno 12 meses · 4 activos,0.440753697622728,rentabilidad
+2026,Momentum con freno 12 meses · 4 activos,0.4740278710644814,rentabilidad

@@ -1,6 +1,6 @@
 ticker,nombre,peso
 AAPL,Apple,0.00625
-SMCI,Super Micro Computer,0.00625
+VST,Vistra,0.00625
 TEM,Tempus AI,0.00625
 ZS,Zscaler,0.00625
 NET,Cloudflare,0.00625
@@ -10,8 +10,8 @@ SNPS,Synopsys,0.00625
 KLAC,KLA,0.00625
 LRCX,Lam Research,0.00625
 DELL,Dell,0.00625
+SMCI,Super Micro Computer,0.00625
 MRVL,Marvell Technology,0.00625
-MSFT,Microsoft,0.00625
 ETSY,Etsy,0.00625
 ROKU,Roku,0.00625
 HOOD,Robinhood,0.00625
@@ -20,10 +20,9 @@ GME,GameStop,0.00625
 FCX,Freeport-McMoRan,0.00625
 NEM,Newmont,0.00625
 LIN,Linde,0.00625
-GM,General Motors,0.00625
 CEG,Constellation Energy,0.00625
-VST,Vistra,0.00625
 MSTR,Strategy (MicroStrategy),0.00625
+DE,John Deere,0.00625
 XYZ,Block (Square),0.00625
 REGN,Regeneron,0.00625
 VRTX,Vertex,0.00625
@@ -44,9 +43,9 @@ DUOL,Duolingo,0.00625
 PINS,Pinterest,0.00625
 SNAP,Snap,0.00625
 AFRM,Affirm,0.00625
-DE,John Deere,0.00625
+GM,General Motors,0.00625
 CAT,Caterpillar,0.00625
-PANW,Palo Alto Networks,0.00625
+MSFT,Microsoft,0.00625
 GILD,Gilead,0.00625
 TMO,Thermo Fisher,0.00625
 PFE,Pfizer,0.00625
@@ -68,9 +67,10 @@ AMZN,Amazon,0.00625
 GOOGL,Alphabet (Google),0.00625
 NVDA,Nvidia,0.00625
 AMGN,Amgen,0.00625
-BMY,Bristol-Myers Squibb,0.00625
-CRWD,CrowdStrike,0.00625
 KO,Coca-Cola,0.00625
+PANW,Palo Alto Networks,0.00625
+DIS,Disney,0.00625
+CRWD,CrowdStrike,0.00625
 SNOW,Snowflake,0.00625
 ABNB,Airbnb,0.00625
 PLTR,Palantir,0.00625
@@ -83,11 +83,10 @@ AMD,AMD,0.00625
 INTC,Intel,0.00625
 CSCO,Cisco,0.00625
 CRM,Salesforce,0.00625
+SCHW,Charles Schwab,0.00625
 PYPL,PayPal,0.00625
 BLK,BlackRock,0.00625
 MS,Morgan Stanley,0.00625
 C,Citigroup,0.00625
-WFC,Wells Fargo,0.00625
 BAC,Bank of America,0.00625
-DIS,Disney,0.00625
 U,Unity Software,0.00625
