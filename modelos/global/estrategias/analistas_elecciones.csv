@@ -1,23 +1,21 @@
 anio,variante,rent_anio,criterio
-2016,Momentum con freno 6 meses · 32 activos,0.2075236140079506,sharpe
-2017,Momentum con freno 6 meses · 16 activos,0.4616580042211835,sharpe
-2018,Momentum con freno 6 meses · 16 activos,0.1476352998721382,sharpe
-2019,Momentum con freno 6 meses · 16 activos,0.37283267561853717,sharpe
-2020,Momentum con freno 6 meses · 16 activos,2.113039958685321,sharpe
-2021,Momentum con freno 6 meses · 16 activos,0.2819579383245723,sharpe
-2022,Tendencia (media de 12 meses),-0.0870240680270985,sharpe
-2023,Tendencia (media de 12 meses),0.20515181649209246,sharpe
-2024,Tendencia (media de 12 meses),0.2698412191417887,sharpe
-2025,Tendencia (media de 12 meses),0.21585263098270668,sharpe
-2026,Tendencia (media de 12 meses),0.07636256872482527,sharpe
-2016,Momentum con freno 6 meses · 16 activos,0.3955222175792088,rentabilidad
-2017,Momentum con freno 6 meses · 16 activos,0.4616580042211835,rentabilidad
-2018,Momentum con freno 6 meses · 16 activos,0.1476352998721382,rentabilidad
-2019,Momentum con freno 6 meses · 16 activos,0.37283267561853717,rentabilidad
-2020,Momentum con freno 6 meses · 16 activos,2.113039958685321,rentabilidad
-2021,Momentum 6 meses · 16 activos,0.2819579383245723,rentabilidad
-2022,Momentum 6 meses · 16 activos,-0.3118830994953885,rentabilidad
-2023,Momentum con freno 6 meses · 16 activos,0.5976754974036724,rentabilidad
-2024,Momentum con freno 6 meses · 16 activos,0.6043974068094857,rentabilidad
-2025,Momentum 12 meses · 16 activos,1.0108478765135986,rentabilidad
-2026,Momentum 12 meses · 16 activos,0.43350265686718936,rentabilidad
+2017,Momentum con freno 6 meses · 16 activos,0.4616582048272224,sharpe
+2018,Momentum con freno 6 meses · 16 activos,0.14763521788947775,sharpe
+2019,Momentum con freno 6 meses · 16 activos,0.3728324542664043,sharpe
+2020,Momentum con freno 6 meses · 16 activos,2.1130401029320898,sharpe
+2021,Momentum con freno 6 meses · 16 activos,0.2819579691425682,sharpe
+2022,Tendencia (media de 12 meses),-0.08702411365374496,sharpe
+2023,Tendencia (media de 12 meses),0.20515179776925252,sharpe
+2024,Tendencia (media de 12 meses),0.2698412514970876,sharpe
+2025,Tendencia (media de 12 meses),0.21585262227425028,sharpe
+2026,Tendencia (media de 12 meses),0.06314864360618411,sharpe
+2017,Momentum con freno 6 meses · 16 activos,0.4616582048272224,rentabilidad
+2018,Momentum con freno 6 meses · 16 activos,0.14763521788947775,rentabilidad
+2019,Momentum con freno 6 meses · 16 activos,0.3728324542664043,rentabilidad
+2020,Momentum con freno 6 meses · 16 activos,2.1130401029320898,rentabilidad
+2021,Momentum 6 meses · 16 activos,0.2819579691425682,rentabilidad
+2022,Momentum 6 meses · 16 activos,-0.3118830391458264,rentabilidad
+2023,Momentum con freno 6 meses · 16 activos,0.597675362543544,rentabilidad
+2024,Momentum con freno 6 meses · 16 activos,0.6043973796853264,rentabilidad
+2025,Momentum con freno 6 meses · 16 activos,0.6383978016133718,rentabilidad
+2026,Momentum 12 meses · 16 activos,0.36959366152739515,rentabilidad
