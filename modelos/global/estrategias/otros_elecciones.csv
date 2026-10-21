@@ -13,11 +13,11 @@ anio,variante,rent_anio,criterio
 2019,Momentum 3 meses · 7 activos,0.023824362003801225,sharpe
 2020,Comprar todo (igual peso),0.32833532347266914,sharpe
 2021,Comprar todo (igual peso),0.3920918976659953,sharpe
-2022,Comprar todo (igual peso),-0.11108869670271448,sharpe
+2022,Comprar todo (igual peso),-0.11108869670271482,sharpe
 2023,Comprar todo (igual peso),0.19516536431459053,sharpe
 2024,Comprar todo (igual peso),0.21569284873425865,sharpe
 2025,Comprar todo (igual peso),0.06974520936302775,sharpe
-2026,Comprar todo (igual peso),0.0673007054321817,sharpe
+2026,Comprar todo (igual peso),0.06559388035892288,sharpe
 2008,Momentum 12 meses · 5 activos,-0.20433151210954226,rentabilidad
 2009,Momentum con freno 3 meses · 5 activos,0.166768661404175,rentabilidad
 2010,Momentum con freno 3 meses · 2 activos,0.01906669514480397,rentabilidad
@@ -36,4 +36,4 @@ anio,variante,rent_anio,criterio
 2023,Momentum 6 meses · 2 activos,0.010703773731214117,rentabilidad
 2024,Combinada (subida + calma) · 2 activos,0.8157314991820199,rentabilidad
 2025,Combinada (subida + calma) · 2 activos,-0.2704588657860171,rentabilidad
-2026,Baja volatilidad · 2 activos,-0.10897382069272099,rentabilidad
+2026,Baja volatilidad · 2 activos,-0.09702156144221841,rentabilidad
