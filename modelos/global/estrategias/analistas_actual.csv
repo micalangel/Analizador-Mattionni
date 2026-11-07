@@ -1,26 +1,26 @@
 ticker,nombre,peso
 AAPL,Apple,0.00625
-AMC,AMC Entertainment,0.00625
-XYZ,Block (Square),0.00625
-TEM,Tempus AI,0.00625
+GME,GameStop,0.00625
 ZS,Zscaler,0.00625
 NET,Cloudflare,0.00625
+SNPS,Synopsys,0.00625
 DELL,Dell,0.00625
 ETSY,Etsy,0.00625
 ROKU,Roku,0.00625
-GME,GameStop,0.00625
-DUOL,Duolingo,0.00625
+AMC,AMC Entertainment,0.00625
 NEM,Newmont,0.00625
+XYZ,Block (Square),0.00625
 LIN,Linde,0.00625
 DUK,Duke Energy,0.00625
 NEE,NextEra Energy,0.00625
 VZ,Verizon,0.00625
 GM,General Motors,0.00625
 DE,John Deere,0.00625
+UPS,UPS,0.00625
+TEM,Tempus AI,0.00625
 AFRM,Affirm,0.00625
-LYFT,Lyft,0.00625
 MSFT,Microsoft,0.00625
-CMG,Chipotle,0.00625
+LOW,Lowe's,0.00625
 REGN,Regeneron,0.00625
 VRTX,Vertex,0.00625
 MRNA,Moderna,0.00625
@@ -28,17 +28,17 @@ EL,Estée Lauder,0.00625
 MDLZ,Mondelez,0.00625
 PM,Philip Morris,0.00625
 MNST,Monster Beverage,0.00625
-LOW,Lowe's,0.00625
-EXPE,Expedia,0.00625
 TGT,Target,0.00625
+DUOL,Duolingo,0.00625
 CVNA,Carvana,0.00625
 RCL,Royal Caribbean,0.00625
 CCL,Carnival,0.00625
 UAL,United Airlines,0.00625
 DAL,Delta Air Lines,0.00625
 MAR,Marriott,0.00625
-UPS,UPS,0.00625
+LYFT,Lyft,0.00625
 LMT,Lockheed Martin,0.00625
+GE,GE Aerospace,0.00625
 PANW,Palo Alto Networks,0.00625
 CVX,Chevron,0.00625
 MRK,Merck,0.00625
