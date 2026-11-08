@@ -8,10 +8,10 @@ desde_aprendiz,2008-01-31
 elegida_hoy,Comprar todo (igual peso)
 corte_mitades,2017-12-31
 liquidez_hoy,0.0
-aprendiz_rent_anual,0.05365897705697864
-aprendiz_volatilidad,0.12947231992122796
-aprendiz_sharpe,0.46845962590384194
-aprendiz_max_caida,-0.36579942449402003
+aprendiz_rent_anual,0.05363772094756314
+aprendiz_volatilidad,0.12947528556892085
+aprendiz_sharpe,0.46829529124773267
+aprendiz_max_caida,-0.36579942449402014
 aprendiz_meses_positivos,0.5418502202643172
 aprendiz_anios,18.916666666666668
 ambicioso_rent_anual,0.058286651968080694
@@ -20,9 +20,9 @@ ambicioso_sharpe,0.34335014451084767
 ambicioso_max_caida,-0.865387237189867
 ambicioso_meses_positivos,0.5198237885462555
 ambicioso_anios,18.916666666666668
-referencia_rent_anual,0.07323545170317369
-referencia_volatilidad,0.101790545606022
-referencia_sharpe,0.746736553048356
-referencia_max_caida,-0.23593129987047967
+referencia_rent_anual,0.07321380066551675
+referencia_volatilidad,0.10179456888543502
+referencia_sharpe,0.7465116656071958
+referencia_max_caida,-0.23593129987047956
 referencia_meses_positivos,0.5814977973568282
 referencia_anios,18.916666666666668
