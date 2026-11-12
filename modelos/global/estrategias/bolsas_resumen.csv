@@ -7,10 +7,10 @@ hasta,2026-11-30
 desde_aprendiz,2002-01-31
 elegida_hoy,Tendencia (media de 10 meses)
 corte_mitades,2014-12-31
-liquidez_hoy,0.3055555555555556
-aprendiz_rent_anual,0.07873678030706266
-aprendiz_volatilidad,0.0998696783515651
-aprendiz_sharpe,0.8112056442567147
+liquidez_hoy,0.2777777777777778
+aprendiz_rent_anual,0.07898502118979889
+aprendiz_volatilidad,0.0998746467540074
+aprendiz_sharpe,0.8134896089551702
 aprendiz_max_caida,-0.22016980326409108
 aprendiz_meses_positivos,0.6956521739130435
 aprendiz_anios,24.916666666666668
@@ -20,9 +20,9 @@ ambicioso_sharpe,0.7594738466034747
 ambicioso_max_caida,-0.22016980326409108
 ambicioso_meses_positivos,0.6521739130434783
 ambicioso_anios,24.916666666666668
-referencia_rent_anual,0.07578272180056134
-referencia_volatilidad,0.1351723262222262
-referencia_sharpe,0.610794037006788
+referencia_rent_anual,0.07606068977075231
+referencia_volatilidad,0.13520015478444072
+referencia_sharpe,0.612619532352467
 referencia_max_caida,-0.5223924048195505
 referencia_meses_positivos,0.6454849498327759
 referencia_anios,24.916666666666668
