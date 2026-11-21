@@ -8,9 +8,9 @@ desde_aprendiz,2002-01-31
 elegida_hoy,Momentum con filtro de mercado · 11 activos
 corte_mitades,2014-12-31
 liquidez_hoy,1.0
-aprendiz_rent_anual,0.09097599692909841
-aprendiz_volatilidad,0.10659691526198561
-aprendiz_sharpe,0.8730165963699916
+aprendiz_rent_anual,0.09097599694185332
+aprendiz_volatilidad,0.10659691519466463
+aprendiz_sharpe,0.873016596967742
 aprendiz_max_caida,-0.2180102249995456
 aprendiz_meses_positivos,0.6989966555183946
 aprendiz_anios,24.916666666666668
@@ -20,10 +20,10 @@ ambicioso_sharpe,0.7725850104905633
 ambicioso_max_caida,-0.26275839844095816
 ambicioso_meses_positivos,0.6588628762541806
 ambicioso_anios,24.916666666666668
-referencia_rent_anual,0.07469180392368324
-referencia_volatilidad,0.13567903457616065
-referencia_sharpe,0.6015189835071875
-referencia_max_caida,-0.5236444454775353
+referencia_rent_anual,0.0738199487005311
+referencia_volatilidad,0.135850346592004
+referencia_sharpe,0.5949206217363836
+referencia_max_caida,-0.5236444454775352
 referencia_meses_positivos,0.6321070234113713
 referencia_anios,24.916666666666668
 aprendiz_vs_azar,1.0
