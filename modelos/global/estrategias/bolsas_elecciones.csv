@@ -1,6 +1,6 @@
 anio,variante,rent_anio,criterio
 2002,Momentum + IA · 4 activos,-0.1640390650083139,sharpe
-2003,Momentum con filtro de mercado · 11 activos,0.3837490465046596,sharpe
+2003,Momentum con filtro de mercado · 11 activos,0.38374904650466,sharpe
 2004,Momentum con filtro de mercado · 11 activos,0.21334969068017529,sharpe
 2005,Momentum con filtro de mercado · 11 activos,0.2963593409321057,sharpe
 2006,Momentum con filtro de mercado · 11 activos,0.25756056875626476,sharpe
@@ -10,7 +10,7 @@ anio,variante,rent_anio,criterio
 2010,Tendencia (media de 10 meses),0.012672177231424886,sharpe
 2011,Momentum con filtro de mercado · 11 activos,-0.030181738934439317,sharpe
 2012,Momentum con filtro de mercado · 11 activos,0.01820934035624533,sharpe
-2013,Momentum con filtro de mercado · 11 activos,0.11532157803747545,sharpe
+2013,Momentum con filtro de mercado · 11 activos,0.11532157803747567,sharpe
 2014,Momentum con filtro de mercado · 11 activos,0.055741939758624515,sharpe
 2015,Momentum con filtro de mercado · 11 activos,-0.025561518157701024,sharpe
 2016,Momentum con filtro de mercado · 11 activos,-0.003248884801848151,sharpe
@@ -23,7 +23,7 @@ anio,variante,rent_anio,criterio
 2023,Momentum con filtro de mercado · 11 activos,0.004676763975849374,sharpe
 2024,Tendencia (media de 10 meses),0.0977030651962485,sharpe
 2025,Tendencia (media de 10 meses),0.17919349198593748,sharpe
-2026,Tendencia (media de 10 meses),0.044552581879968134,sharpe
+2026,Tendencia (media de 10 meses),0.0558990718997423,sharpe
 2002,Momentum + IA · 4 activos,-0.1640390650083139,rentabilidad
 2003,Momentum + IA · 4 activos,0.28586420230002485,rentabilidad
 2004,Momentum + IA · 4 activos,0.19618942336370604,rentabilidad
