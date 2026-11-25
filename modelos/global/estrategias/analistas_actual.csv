@@ -1,6 +1,6 @@
 ticker,nombre,peso
 AAPL,Apple,0.00625
-XYZ,Block (Square),0.00625
+PANW,Palo Alto Networks,0.00625
 RTX,RTX (Raytheon),0.00625
 UPS,UPS,0.00625
 DE,John Deere,0.00625
@@ -12,11 +12,10 @@ GME,GameStop,0.00625
 AMC,AMC Entertainment,0.00625
 ROKU,Roku,0.00625
 ETSY,Etsy,0.00625
-DELL,Dell,0.00625
 NET,Cloudflare,0.00625
 ZS,Zscaler,0.00625
+XYZ,Block (Square),0.00625
 DUOL,Duolingo,0.00625
-GE,GE Aerospace,0.00625
 LYFT,Lyft,0.00625
 MAR,Marriott,0.00625
 DAL,Delta Air Lines,0.00625
@@ -32,9 +31,9 @@ MRNA,Moderna,0.00625
 VRTX,Vertex,0.00625
 REGN,Regeneron,0.00625
 LMT,Lockheed Martin,0.00625
-PANW,Palo Alto Networks,0.00625
+CRWD,CrowdStrike,0.00625
 MSFT,Microsoft,0.00625
-PFE,Pfizer,0.00625
+SNOW,Snowflake,0.00625
 AMZN,Amazon,0.00625
 BRK-B,Berkshire Hathaway,0.00625
 LLY,Eli Lilly,0.00625
@@ -49,8 +48,8 @@ PG,Procter & Gamble,0.00625
 JNJ,Johnson & Johnson,0.00625
 ABBV,AbbVie,0.00625
 MRK,Merck,0.00625
+PFE,Pfizer,0.00625
 ABT,Abbott,0.00625
-CRWD,CrowdStrike,0.00625
 TMO,Thermo Fisher,0.00625
 AMGN,Amgen,0.00625
 GILD,Gilead,0.00625
@@ -64,5 +63,4 @@ AMD,AMD,0.00625
 TXN,Texas Instruments,0.00625
 PLTR,Palantir,0.00625
 ABNB,Airbnb,0.00625
-SNOW,Snowflake,0.00625
 U,Unity Software,0.00625
