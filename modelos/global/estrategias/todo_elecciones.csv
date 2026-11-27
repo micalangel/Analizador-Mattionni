@@ -23,7 +23,7 @@ anio,variante,rent_anio,criterio
 2023,Momentum con filtro de mercado · 18 activos,0.08935029277280804,sharpe
 2024,Momentum con filtro de mercado · 18 activos,0.32460756444491445,sharpe
 2025,Momentum con filtro de mercado · 18 activos,0.15137743750521726,sharpe
-2026,Momentum con filtro de mercado · 18 activos,-0.0033894535468617093,sharpe
+2026,Momentum con filtro de mercado · 18 activos,0.012460207806419987,sharpe
 2002,Momentum + IA · 6 activos,-0.013660230295890141,rentabilidad
 2003,Momentum + IA · 6 activos,0.23823341844004653,rentabilidad
 2004,Momentum + IA · 6 activos,0.2473889927946582,rentabilidad
@@ -48,4 +48,4 @@ anio,variante,rent_anio,criterio
 2023,Momentum con filtro de mercado · 6 activos,0.24890932029794866,rentabilidad
 2024,Momentum con filtro de mercado · 6 activos,0.6636171392270205,rentabilidad
 2025,Momentum con filtro de mercado · 6 activos,0.10603402241387472,rentabilidad
-2026,Momentum con filtro de mercado · 6 activos,-0.1793286096144665,rentabilidad
+2026,Momentum con filtro de mercado · 6 activos,-0.16386277700643692,rentabilidad
